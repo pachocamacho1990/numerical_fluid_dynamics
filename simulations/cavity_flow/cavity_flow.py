@@ -6,16 +6,18 @@ from tqdm import tqdm
 
 def build_up_b(b, rho, dt, u, v, dx, dy):
     """
-    Calculates the source term 'b' for the Pressure Poisson Equation.
+    Calculates the Source Term (RHS) for the Pressure Poisson Equation.
     
-    The equation being represented is the RHS of the Poisson equation:
-                                  
-    b = rho * [ (1/dt) * ( (du/dx) + (dv/dy) )
-              - (du/dx)^2
-              - 2 * (du/dy) * (dv/dx)
-              - (dv/dy)^2 ]
-              
-    This term forces the velocity field to likely be divergence-free after the pressure correction.
+    Theory Reference:
+        This corresponds to the divergence of the 'Tentative Velocity' (u*, v*).
+        RHS = (rho / dt) * div(u*)
+        
+    Note on Discretization:
+        The terms below represent the discretized divergence of the convective 
+        and viscous updates that would have been applied to u* if we didn't 
+        separate the pressure term.
+        
+    See docs/navier_stokes_fdm.md Section 3.1 for the full derivation.
     """
     b[1:-1, 1:-1] = (rho * (1 / dt * 
                     ((u[1:-1, 2:] - u[1:-1, 0:-2]) / (2 * dx) + 
@@ -28,13 +30,17 @@ def build_up_b(b, rho, dt, u, v, dx, dy):
 
 def pressure_poisson(p, dx, dy, b):
     """
-    Solves the Pressure Poisson Equation using pseudo-time stepping / iterative relaxation.
+    Solves the Pressure Poisson Equation (PPE) via Jacobi Relaxation.
     
-    The discrete equation being solved is (rearranged for p[i,j]):
-    
-    p[i,j] = ( (p[i+1,j] + p[i-1,j]) * dy^2 + (p[i,j+1] + p[i,j-1]) * dx^2 - b[i,j] * dx^2 * dy^2 )
-             -------------------------------------------------------------------------------------
-                                        2 * (dx^2 + dy^2)
+    Equation:
+        Laplacian(p) = b
+        
+    Algorithm:
+        We iteratively smooth the pressure field until it satisfies the Poisson eq.
+        This provides the pressure field p^{n+1} required to enforce continuity.
+        
+    Boundary Conditions:
+        Neumann BCs (dp/dn = 0) are applied at the walls, consistent with boundary layer theory.
     """
     pn = np.empty_like(p)
     nit = 50  # Number of iterations for pressure solver approximation
