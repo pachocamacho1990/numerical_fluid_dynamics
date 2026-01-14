@@ -61,7 +61,7 @@ $u_{i,j}^n$ denotes velocity at $x = i\Delta x$, $y = j\Delta y$ and time $t = n
 
 Substituting the approximations into the momentum equations and solving for $u_{i,j}^{n+1}$:
 
-### x-Momentum Discrete Form
+### x-Momentum Discrete Form:
 $$
 \begin{aligned}
 u_{i,j}^{n+1} = u_{i,j}^n & - u_{i,j}^n \frac{\Delta t}{\Delta x} (u_{i,j}^n - u_{i-1,j}^n) \\
@@ -71,7 +71,7 @@ u_{i,j}^{n+1} = u_{i,j}^n & - u_{i,j}^n \frac{\Delta t}{\Delta x} (u_{i,j}^n - u
 \end{aligned}
 $$
 
-### y-Momentum Discrete Form
+### y-Momentum Discrete Form:
 Similarly for $v$:
 $$
 \begin{aligned}
