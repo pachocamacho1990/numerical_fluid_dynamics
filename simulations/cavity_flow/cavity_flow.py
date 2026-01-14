@@ -151,10 +151,24 @@ def run_simulation(nt, u, v, dt, dx, dy, p, rho, nu, animate=False):
         return u, v, p
 
 if __name__ == "__main__":
-    # Parameters
-    nx = 41
-    ny = 41
-    nt = 700 # Increased steps to see steady state better
+    import argparse
+    import time
+    
+    parser = argparse.ArgumentParser(description="Lid-Driven Cavity Flow Simulation (NumPy)")
+    parser.add_argument('--benchmark', action='store_true', help="Run in benchmark mode (no animation, print stats)")
+    parser.add_argument('--nx', type=int, default=41, help="Grid points in x direction")
+    parser.add_argument('--ny', type=int, default=41, help="Grid points in y direction")
+    parser.add_argument('--nt', type=int, default=700, help="Number of time steps")
+    parser.add_argument('--dt', type=float, default=0.001, help="Time step size")
+    args = parser.parse_args()
+
+    # Parameters from args
+    nx = args.nx
+    ny = args.ny
+    nt = args.nt
+    dt = args.dt
+    
+    # Fixed/Derived Parameters
     nit = 50
     c = 1
     dx = 2 / (nx - 1)
@@ -165,27 +179,14 @@ if __name__ == "__main__":
     
     rho = 1
     nu = .1
-    dt = .001
-
-    # Initialization
-    u = np.zeros((ny, nx))
-    v = np.zeros((ny, nx))
-    p = np.zeros((ny, nx)) 
-    b = np.zeros((ny, nx))
-    
-    import argparse
-    import time
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--benchmark', action='store_true', help="Run in benchmark mode (no animation, print stats)")
-    args = parser.parse_args()
 
     # Run Simulation
     if args.benchmark:
-        print(f"Starting NumPy simulation with {nt} steps...")
+        print(f"Configuration: Grid={nx}x{ny}, dt={dt}, nt={nt}, Backend=NumPy(CPU)")
+        print(f"Starting simulation...")
         start_time = time.time()
         
-        # Reset 
+        # Initialization
         u = np.zeros((ny, nx))
         v = np.zeros((ny, nx))
         p = np.zeros((ny, nx))
@@ -200,6 +201,7 @@ if __name__ == "__main__":
         print(f"Speed: {nt/total_time:.2f} it/s")
         
     else:
+        print(f"Configuration: Grid={nx}x{ny}, dt={dt}, nt={nt} (Animation Mode)")
         # Reset for animation
         u = np.zeros((ny, nx))
         v = np.zeros((ny, nx))

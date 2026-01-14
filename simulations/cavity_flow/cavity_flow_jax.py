@@ -5,11 +5,11 @@ import time
 import os
 import matplotlib.pyplot as plt
 
-# Force CPU backend for now due to "UNIMPLEMENTED: default_memory_space" error on Metal
-# This usually happens with recent JAX versions on M1/M2/M3
+# Enable Metal backend (if available) or fallback to CPU
 try:
-    jax.config.update('jax_platform_name', 'cpu')
-    print(f"JAX Backend forced to: {jax.default_backend()}")
+    jax.config.update("jax_enable_x64", False) # Metal prefers float32
+    print(f"JAX Default Backend: {jax.default_backend()}")
+    print(f"JAX Devices: {jax.devices()}")
 except Exception as e:
     print(f"Warning: Could not configure JAX backend/devices: {e}")
 
@@ -170,15 +170,12 @@ def velocity_step_jit(u, v, p, dt, dx, dy, rho, nu):
     return u, v, p
 
 
-def run_simulation_jax(nt=700):
+def run_simulation_jax(nt=700, nx=41, ny=41, dt=0.001):
     # Parameters
-    nx = 41
-    ny = 41
     dx = 2 / (nx - 1)
     dy = 2 / (ny - 1)
     rho = 1.0
     nu = 0.1
-    dt = 0.001
 
     # Initialization (JAX arrays)
     u = jnp.zeros((ny, nx), dtype=jnp.float32)
@@ -186,6 +183,7 @@ def run_simulation_jax(nt=700):
     p = jnp.zeros((ny, nx), dtype=jnp.float32)
     
     print(f"Starting JAX simulation with {nt} steps...")
+    print(f"Configuration: Grid={nx}x{ny}, dt={dt}")
     
     # Warmup / Compilation
     print("Compiling JIT function (warmup)...")
@@ -222,15 +220,23 @@ def run_simulation_jax(nt=700):
     return u, v, p
 
 if __name__ == "__main__":
-    u, v, p = run_simulation_jax()
+    import argparse
+    parser = argparse.ArgumentParser(description="Lid-Driven Cavity Flow Simulation (JAX)")
+    parser.add_argument('--nx', type=int, default=41, help="Grid points in x direction")
+    parser.add_argument('--ny', type=int, default=41, help="Grid points in y direction")
+    parser.add_argument('--nt', type=int, default=700, help="Number of time steps")
+    parser.add_argument('--dt', type=float, default=0.001, help="Time step size")
+    args = parser.parse_args()
+
+    u, v, p = run_simulation_jax(nt=args.nt, nx=args.nx, ny=args.ny, dt=args.dt)
     
     # Save a simple plot to verify correctness
     u = np.array(u) # Convert back to CPU numpy for plotting
     p = np.array(p)
     v = np.array(v)
     
-    nx = 41
-    ny = 41
+    nx = args.nx
+    ny = args.ny
     x = np.linspace(0, 2, nx)
     y = np.linspace(0, 2, ny)
     X, Y = np.meshgrid(x, y)
