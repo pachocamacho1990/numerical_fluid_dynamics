@@ -219,14 +219,63 @@ def run_simulation_jax(nt=700, nx=41, ny=41, dt=0.001):
     
     return u, v, p
 
+def check_stability(nx, ny, dt, rho, nu, dx, dy):
+    """
+    Checks CFL and Diffusion stability conditions.
+    """
+    # 1. Diffusion Limit
+    sigma_x = nu * dt / dx**2
+    sigma_y = nu * dt / dy**2
+    sigma_max = max(sigma_x, sigma_y)
+    
+    # 2. CFL Condition
+    u_max = 1.0 
+    cfl_x = u_max * dt / dx
+    cfl_y = u_max * dt / dy
+    
+    # Memory Estimation (JAX typically uses float32)
+    bytes_per_float = 4 
+    total_elements = nx * ny
+    num_arrays = 3 # u, v, p (plus internal copies)
+    total_memory_mb = (total_elements * bytes_per_float * num_arrays * 2) / (1024 * 1024) # *2 safety factor
+    
+    print("-" * 40)
+    print("RESOURCE & STABILITY CHECK (JAX)")
+    print("-" * 40)
+    print(f"Grid: {nx}x{ny}  |  dt: {dt}")
+    print(f"Memory (Est): {total_memory_mb:.2f} MB")
+    print("-" * 40)
+    print(f"Viscous Diffusion Sigma: {sigma_max:.6f} (Limit: 0.5)")
+    print(f"CFL Number: {max(cfl_x, cfl_y):.6f} (Limit: 1.0)")
+    
+    is_stable = True
+    if sigma_max > 0.5:
+        print("❌ UNSTABLE: dt too large (Sigma > 0.5)")
+        print(f"   Recommendation: dt < {0.5 * dx**2 / nu:.6f}")
+        is_stable = False
+    elif max(cfl_x, cfl_y) > 1.0:
+        print("❌ UNSTABLE: dt too large (CFL > 1.0)")
+        is_stable = False
+    else:
+        print("✅ PARAMETERS STABLE")
+    print("-" * 40)
+    return is_stable
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Lid-Driven Cavity Flow Simulation (JAX)")
+    parser.add_argument('--check', action='store_true', help="Check stability and resources without running")
     parser.add_argument('--nx', type=int, default=41, help="Grid points in x direction")
     parser.add_argument('--ny', type=int, default=41, help="Grid points in y direction")
     parser.add_argument('--nt', type=int, default=700, help="Number of time steps")
     parser.add_argument('--dt', type=float, default=0.001, help="Time step size")
     args = parser.parse_args()
+
+    if args.check:
+        dx = 2 / (args.nx - 1)
+        dy = 2 / (args.ny - 1)
+        check_stability(args.nx, args.ny, args.dt, 1.0, 0.1, dx, dy)
+        exit(0)
 
     u, v, p = run_simulation_jax(nt=args.nt, nx=args.nx, ny=args.ny, dt=args.dt)
     

@@ -150,12 +150,64 @@ def run_simulation(nt, u, v, dt, dx, dy, p, rho, nu, animate=False):
         print("Animation saved.")
         return u, v, p
 
+def check_stability(nx, ny, dt, rho, nu, dx, dy):
+    """
+    Checks CFL and Diffusion stability conditions.
+    Returns True if stable, False if unstable.
+    """
+    # 1. Diffusion Limit (viscous stability)
+    sigma_x = nu * dt / dx**2
+    sigma_y = nu * dt / dy**2
+    sigma_max = max(sigma_x, sigma_y)
+    
+    # 2. CFL Condition (Courant-Friedrichs-Lewy)
+    # Estimate max velocity (lid velocity = 1.0)
+    u_max = 1.0 
+    cfl_x = u_max * dt / dx
+    cfl_y = u_max * dt / dy
+    
+    # Memory Estimation (Fields u, v, p, b, plus temps)
+    # Approx 6-8 arrays of size Nx*Ny * 8 bytes (float64) or 4 bytes (float32)
+    bytes_per_float = 8 # NumPy defaults to float64
+    total_elements = nx * ny
+    num_arrays = 6 # u, v, p, b, un, vn
+    total_memory_mb = (total_elements * bytes_per_float * num_arrays) / (1024 * 1024)
+    
+    print("-" * 40)
+    print("RESOURCE & STABILITY CHECK")
+    print("-" * 40)
+    print(f"Grid: {nx}x{ny}  |  Cells: {total_elements}")
+    print(f"Memory (Est): {total_memory_mb:.2f} MB")
+    print(f"dt: {dt}")
+    print(f"dx: {dx:.6f}, dy: {dy:.6f}")
+    print("-" * 40)
+    print(f"Viscous Diffusion Sigma: {sigma_max:.6f} (Limit: 0.5)")
+    print(f"CFL Number: {max(cfl_x, cfl_y):.6f} (Limit: 1.0)")
+    
+    is_stable = True
+    if sigma_max > 0.5:
+        print("❌ UNSTABLE: Time step too large for viscosity (Sigma > 0.5)")
+        print(f"   Recommendation: dt < {0.5 * dx**2 / nu:.6f}")
+        is_stable = False
+    
+    if max(cfl_x, cfl_y) > 1.0:
+        print("❌ UNSTABLE: Time step too large for velocity (CFL > 1.0)")
+        print(f"   Recommendation: dt < {dx / u_max:.6f}")
+        is_stable = False
+        
+    if is_stable:
+        print("✅ PARAMETERS STABLE")
+        
+    print("-" * 40)
+    return is_stable
+
 if __name__ == "__main__":
     import argparse
     import time
     
     parser = argparse.ArgumentParser(description="Lid-Driven Cavity Flow Simulation (NumPy)")
     parser.add_argument('--benchmark', action='store_true', help="Run in benchmark mode (no animation, print stats)")
+    parser.add_argument('--check', action='store_true', help="Check stability and resources without running")
     parser.add_argument('--nx', type=int, default=41, help="Grid points in x direction")
     parser.add_argument('--ny', type=int, default=41, help="Grid points in y direction")
     parser.add_argument('--nt', type=int, default=700, help="Number of time steps")
@@ -179,6 +231,11 @@ if __name__ == "__main__":
     
     rho = 1
     nu = .1
+
+    # Check Mode
+    if args.check:
+        check_stability(nx, ny, dt, rho, nu, dx, dy)
+        exit(0)
 
     # Run Simulation
     if args.benchmark:
