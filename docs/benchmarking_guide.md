@@ -58,6 +58,28 @@ source venv_metal/bin/activate
 python simulations/cavity_flow/cavity_flow_jax.py --nx 51 --nt 500
 ```
 
+### 3. Stability & Resource Verification (Dry Run)
+
+Before running a heavy simulation, you can check if your parameters are numerically stable (CFL condition) and estimate memory usage:
+
+```bash
+# Check if 200x200 grid with dt=0.001 is stable
+./run_benchmark.sh --check --nx 200 --ny 200 --dt 0.001
+```
+
+**Output Example:**
+```text
+----------------------------------------
+RESOURCE & STABILITY CHECK
+----------------------------------------
+Grid: 200x200  |  Cells: 40000
+Memory (Est): 1.83 MB
+...
+❌ UNSTABLE: Time step too large for viscosity (Sigma > 0.5)
+   Recommendation: dt < 0.000488
+----------------------------------------
+```
+
 ## Performance Expectations (Apple Silicon)
 
 On an M1/M2/M3 chip, typical results for a **41x41 grid** are:
