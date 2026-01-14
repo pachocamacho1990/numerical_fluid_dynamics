@@ -173,16 +173,35 @@ if __name__ == "__main__":
     p = np.zeros((ny, nx)) 
     b = np.zeros((ny, nx))
     
-    # Run Animation
-    # Reset for animation
-    u = np.zeros((ny, nx))
-    v = np.zeros((ny, nx))
-    p = np.zeros((ny, nx))
-    run_simulation(nt, u, v, dt, dx, dy, p, rho, nu, animate=True)
+    import argparse
+    import time
     
-    # Optional: Save final static frame as well
-    # fig = plt.figure(figsize=(11, 7), dpi=100)
-    # plt.contourf(X, Y, p, alpha=0.5, cmap='viridis')
-    # plt.colorbar()
-    # plt.quiver(X[::2, ::2], Y[::2, ::2], u[::2, ::2], v[::2, ::2]) 
-    # plt.savefig("cavity_flow_result.png")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--benchmark', action='store_true', help="Run in benchmark mode (no animation, print stats)")
+    args = parser.parse_args()
+
+    # Run Simulation
+    if args.benchmark:
+        print(f"Starting NumPy simulation with {nt} steps...")
+        start_time = time.time()
+        
+        # Reset 
+        u = np.zeros((ny, nx))
+        v = np.zeros((ny, nx))
+        p = np.zeros((ny, nx))
+        
+        run_simulation(nt, u, v, dt, dx, dy, p, rho, nu, animate=False)
+        
+        end_time = time.time()
+        total_time = end_time - start_time
+        print(f"NumPy Simulation complete.")
+        print(f"Steps: {nt}")
+        print(f"Time: {total_time:.4f} s")
+        print(f"Speed: {nt/total_time:.2f} it/s")
+        
+    else:
+        # Reset for animation
+        u = np.zeros((ny, nx))
+        v = np.zeros((ny, nx))
+        p = np.zeros((ny, nx))
+        run_simulation(nt, u, v, dt, dx, dy, p, rho, nu, animate=True)
