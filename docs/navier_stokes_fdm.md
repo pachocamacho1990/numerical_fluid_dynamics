@@ -7,11 +7,13 @@ This document details the step-by-step derivation of the discrete Navier-Stokes 
 For an incompressible, viscous fluid, the equations are:
 
 **Continuity Equation (Conservation of Mass):**
+
 $$
 \nabla \cdot \mathbf{u} = 0
 $$
 
 **Momentum Equation (Conservation of Momentum):**
+
 $$
 \frac{\partial \mathbf{u}}{\partial t} + (\mathbf{u} \cdot \nabla) \mathbf{u} = -\frac{1}{\rho} \nabla p + \nu \nabla^2 \mathbf{u}
 $$
@@ -19,16 +21,19 @@ $$
 In 2D Cartesian coordinates $(x, y)$ with velocity components $(u, v)$, these expand to:
 
 **2D Continuity:**
+
 $$
 \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0
 $$
 
 **x-Momentum:**
+
 $$
 \frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} + v \frac{\partial u}{\partial y} = -\frac{1}{\rho} \frac{\partial p}{\partial x} + \nu \left( \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} \right)
 $$
 
 **y-Momentum:**
+
 $$
 \frac{\partial v}{\partial t} + u \frac{\partial v}{\partial x} + v \frac{\partial v}{\partial y} = -\frac{1}{\rho} \frac{\partial p}{\partial y} + \nu \left( \frac{\partial^2 v}{\partial x^2} + \frac{\partial^2 v}{\partial y^2} \right)
 $$
@@ -43,17 +48,21 @@ $u_{i,j}^n$ denotes velocity at $x = i\Delta x$, $y = j\Delta y$ and time $t = n
 ### Derivatives Approximation
 
 *   **Time Derivative (Forward Difference):**
-    $$ \frac{\partial u}{\partial t} \approx \frac{u_{i,j}^{n+1} - u_{i,j}^n}{\Delta t} $$
+
+$$ \frac{\partial u}{\partial t} \approx \frac{u_{i,j}^{n+1} - u_{i,j}^n}{\Delta t} $$
 
 *   **First Spatial Derivative (Backward Difference for Convection - Upwind Scheme generally better, but here we use Central/Backward mixes for simplicity in this basic solver):**
     *In this specific implementation, we used backward difference for convection:*
-    $$ \frac{\partial u}{\partial x} \approx \frac{u_{i,j}^n - u_{i-1,j}^n}{\Delta x} $$
+    
+$$ \frac{\partial u}{\partial x} \approx \frac{u_{i,j}^n - u_{i-1,j}^n}{\Delta x} $$
 
 *   **First Spatial Derivative (Central Difference for Pressure):**
-    $$ \frac{\partial p}{\partial x} \approx \frac{p_{i+1,j}^n - p_{i-1,j}^n}{2\Delta x} $$
+
+$$ \frac{\partial p}{\partial x} \approx \frac{p_{i+1,j}^n - p_{i-1,j}^n}{2\Delta x} $$
 
 *   **Second Spatial Derivative (Central Difference for Diffusion):**
-    $$ \frac{\partial^2 u}{\partial x^2} \approx \frac{u_{i+1,j}^n - 2u_{i,j}^n + u_{i-1,j}^n}{\Delta x^2} $$
+  
+$$ \frac{\partial^2 u}{\partial x^2} \approx \frac{u_{i+1,j}^n - 2u_{i,j}^n + u_{i-1,j}^n}{\Delta x^2} $$
 
 ---
 
@@ -62,6 +71,7 @@ $u_{i,j}^n$ denotes velocity at $x = i\Delta x$, $y = j\Delta y$ and time $t = n
 Substituting the approximations into the momentum equations and solving for $u_{i,j}^{n+1}$:
 
 ### x-Momentum Discrete Form:
+
 $$
 \begin{aligned}
 u_{i,j}^{n+1} = u_{i,j}^n & - u_{i,j}^n \frac{\Delta t}{\Delta x} (u_{i,j}^n - u_{i-1,j}^n) \\
@@ -72,7 +82,9 @@ u_{i,j}^{n+1} = u_{i,j}^n & - u_{i,j}^n \frac{\Delta t}{\Delta x} (u_{i,j}^n - u
 $$
 
 ### y-Momentum Discrete Form:
+
 Similarly for $v$:
+
 $$
 \begin{aligned}
 v_{i,j}^{n+1} = v_{i,j}^n & - u_{i,j}^n \frac{\Delta t}{\Delta x} (v_{i,j}^n - v_{i-1,j}^n) \\
@@ -89,9 +101,11 @@ $$
 Pressure does not have an explicit evolution equation. We derive one by taking the divergence of the momentum equation and enforcing the continuity constraint $\nabla \cdot \mathbf{u}^{n+1} = 0$.
 
 The resulting Poisson Equation is:
+
 $$
 \frac{\partial^2 p}{\partial x^2} + \frac{\partial^2 p}{\partial y^2} = -\rho \left[ \left(\frac{\partial u}{\partial x}\right)^2 + 2 \frac{\partial u}{\partial y} \frac{\partial v}{\partial x} + \left(\frac{\partial v}{\partial y}\right)^2 \right] + \dots
 $$
+
 *(Note: Continuity terms simplify substantially)*
 
 ### Discrete PPE
