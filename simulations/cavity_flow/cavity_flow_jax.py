@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import time
 import argparse
+import os
 
 # --- JIT Compiled Functions ---
 
@@ -133,7 +134,14 @@ def main():
     parser.add_argument("--nt", type=int, default=500, help="Number of time steps")
     parser.add_argument("--re", type=float, default=None, help="Reynolds number (overrides nu)")
     parser.add_argument("--dt", type=float, default=0.001, help="Time step")
+    parser.add_argument("--output-dir", type=str, default="outputs/baseline", help="Output directory for data files")
     args = parser.parse_args()
+    
+    # Create output directories
+    output_dir = os.path.join("simulations/cavity_flow", args.output_dir)
+    plots_dir = "simulations/cavity_flow/plots"
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(plots_dir, exist_ok=True)
 
     # Parameters
     nx = args.nx
@@ -187,15 +195,15 @@ def main():
     
     # Convert CFL history to numpy and save
     cfl_history = np.array(cfl_history)
-    output_csv = f"simulations/cavity_flow/cfl_jax_{backend}.csv"
-    output_npz = f"simulations/cavity_flow/solution_jax_{backend}.npz"
+    output_csv = os.path.join(output_dir, f"cfl_jax_{backend}.csv")
+    output_npz = os.path.join(output_dir, f"solution_jax_{backend}.npz")
     
     if backend == "METAL": 
-        output_csv = "simulations/cavity_flow/cfl_jax_metal.csv"
-        output_npz = "simulations/cavity_flow/solution_jax_metal.npz"
+        output_csv = os.path.join(output_dir, "cfl_jax_metal.csv")
+        output_npz = os.path.join(output_dir, "solution_jax_metal.npz")
     elif backend == "cpu":
-        output_csv = "simulations/cavity_flow/cfl_jax_cpu.csv"
-        output_npz = "simulations/cavity_flow/solution_jax_cpu.npz"
+        output_csv = os.path.join(output_dir, "cfl_jax_cpu.csv")
+        output_npz = os.path.join(output_dir, "solution_jax_cpu.npz")
         
     np.savetxt(output_csv, cfl_history, delimiter=",")
     print(f"CFL history saved to {output_csv}")
@@ -226,7 +234,7 @@ def main():
         plt.ylabel('Y')
         plt.title(f'Cavity Flow (JAX {backend})')
         
-        output_file = "simulations/cavity_flow/cavity_flow_jax_result.png"
+        output_file = os.path.join(plots_dir, "cavity_flow_jax_result.png")
         plt.savefig(output_file)
         print(f"Result saved to {output_file}")
 

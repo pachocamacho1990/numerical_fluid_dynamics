@@ -12,7 +12,7 @@ A 2D simulation of flow in a square cavity with a moving top lid, implemented us
 ## Outcome
 The simulation produces a characteristic central vortex.
 
-![Pressure Field and Streamlines](cavity_flow_result.png)
+![Pressure Field and Streamlines](plots/cavity_flow_result.png)
 
 
 ## JAX Implementation
@@ -29,18 +29,18 @@ A JAX-accelerated version is available in `cavity_flow_jax.py`.
 ## CFL Analysis
 The Courant-Friedrichs-Lewy (CFL) number is tracked for each time step to monitor stability.
 
-![CFL Comparison](cfl_comparison.png)
+![CFL Comparison](plots/cfl_comparison.png)
 
 ## Solutions Comparison
 Comparison of the final state (Pressure + Streamlines) across all implementations.
 
-![Solutions Comparison](solutions_comparison.png)
+![Solutions Comparison](plots/solutions_comparison.png)
 
 ## Stability Analysis
 We investigated the stability of the numerical scheme by increasing the Reynolds number (Re) on a finer grid ($81 \times 81$) with $\Delta t = 0.0005$.
 
-![Stability Velocity](stability_velocity.png)
-![Stability CFL](stability_cfl.png)
+![Stability Velocity](plots/stability_velocity.png)
+![Stability CFL](plots/stability_cfl.png)
 
 > [!IMPORTANT]
 > **Resolution Matters**: increasing the grid to $201 \times 201$ makes the simulation **stable at Re=1000** (which previously crashed). However, instability returns at higher Reynolds numbers ($Re \ge 2500$) where it crashes around step 4500. This confirms that higher Re requires finer meshes ($Re_{\Delta x}$ constraint).
@@ -48,7 +48,7 @@ We investigated the stability of the numerical scheme by increasing the Reynolds
 ## High Reynolds Comparison ($Re=1000$)
 Using the finer $201 \times 201$ grid, we successfully computed the stable flow at $Re=1000$.
 
-![Solution Re1000](solutions_comparison_re1000.png)
+![Solution Re1000](plots/solutions_comparison_re1000.png)
 
 > [!NOTE]
 > **Performance**:

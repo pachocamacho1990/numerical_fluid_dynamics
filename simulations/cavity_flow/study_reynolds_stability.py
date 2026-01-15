@@ -12,6 +12,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from cavity_flow_jax import time_step
 
 def main():
+    # Create output directories
+    base_dir = "simulations/cavity_flow"
+    plots_dir = os.path.join(base_dir, "plots")
+    os.makedirs(plots_dir, exist_ok=True)
+    
     # Parameters matches Barba Step 11 defaults
     # High-Res for Stability Test (5x original)
     nx = 201
@@ -117,7 +122,7 @@ def main():
     plt.title("Stability Analysis: Max Velocity vs Reynolds Number")
     plt.legend()
     plt.grid(True, alpha=0.3)
-    plt.savefig("simulations/cavity_flow/stability_velocity.png")
+    plt.savefig(os.path.join(plots_dir, "stability_velocity.png"))
     
     # 2. CFL vs Time
     plt.figure(figsize=(10, 6), dpi=100)
@@ -130,7 +135,7 @@ def main():
     plt.title("CFL Evolution vs Reynolds Number")
     plt.legend()
     plt.grid(True, alpha=0.3)
-    plt.savefig("simulations/cavity_flow/stability_cfl.png")
+    plt.savefig(os.path.join(plots_dir, "stability_cfl.png"))
     
     print("Done.")
 

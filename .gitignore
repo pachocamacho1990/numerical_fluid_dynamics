@@ -31,7 +31,10 @@ ENV/
 *.swp
 .DS_Store
 
-
+# Simulation Data Files
+simulations/cavity_flow/outputs/
+*.npz
+*.csv
 
 # Specific venvs
 venv_metal/

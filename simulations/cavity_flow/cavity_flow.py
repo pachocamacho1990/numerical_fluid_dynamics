@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import argparse
+import os
 
 def build_up_b(b, rho, dt, u, v, dx, dy):
     b[1:-1, 1:-1] = (rho * (1 / dt * 
@@ -92,7 +93,14 @@ if __name__ == "__main__":
     parser.add_argument("--re", type=float, default=None, help="Reynolds number (overrides nu)")
     parser.add_argument("--dt", type=float, default=0.001, help="Time step")
     parser.add_argument("--benchmark", action="store_true", help="Minimal output for benchmarking")
+    parser.add_argument("--output-dir", type=str, default="outputs/baseline", help="Output directory for data files")
     args = parser.parse_args()
+    
+    # Create output directories
+    output_dir = os.path.join("simulations/cavity_flow", args.output_dir)
+    plots_dir = "simulations/cavity_flow/plots"
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(plots_dir, exist_ok=True)
 
     # Parameters
     nx = args.nx
@@ -129,14 +137,16 @@ if __name__ == "__main__":
     u, v, p, cfl_history = cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu)
     
     # Save CFL data
-    np.savetxt("simulations/cavity_flow/cfl_numpy.csv", cfl_history, delimiter=",")
+    cfl_path = os.path.join(output_dir, "cfl_numpy.csv")
+    np.savetxt(cfl_path, cfl_history, delimiter=",")
     if not args.benchmark:
-        print("CFL history saved to simulations/cavity_flow/cfl_numpy.csv")
+        print(f"CFL history saved to {cfl_path}")
     
     # Save Raw Solution (NPZ)
-    np.savez("simulations/cavity_flow/solution_numpy.npz", u=u, v=v, p=p)
+    solution_path = os.path.join(output_dir, "solution_numpy.npz")
+    np.savez(solution_path, u=u, v=v, p=p)
     if not args.benchmark:
-        print("Solution saved to simulations/cavity_flow/solution_numpy.npz")
+        print(f"Solution saved to {solution_path}")
     
     print("Simulation complete. Generating plot...")
 
@@ -150,6 +160,6 @@ if __name__ == "__main__":
     plt.ylabel('Y')
     plt.title('Cavity Flow Pressure and Streamlines')
     
-    output_file = "simulations/cavity_flow/cavity_flow_result.png"
+    output_file = os.path.join(plots_dir, "cavity_flow_result.png")
     plt.savefig(output_file)
     print(f"Result saved to {output_file}")

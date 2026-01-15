@@ -9,10 +9,15 @@ import argparse
 def main():
     parser = argparse.ArgumentParser(description="Compare Solutions")
     parser.add_argument("--output", default="solutions_comparison.png", help="Output filename")
+    parser.add_argument("--input-dir", default="outputs/baseline", help="Input directory for solution files")
     args = parser.parse_args()
 
     base_dir = "simulations/cavity_flow"
-    files = sorted(glob.glob(os.path.join(base_dir, "solution_*.npz")))
+    input_dir = os.path.join(base_dir, args.input_dir)
+    plots_dir = os.path.join(base_dir, "plots")
+    os.makedirs(plots_dir, exist_ok=True)
+    
+    files = sorted(glob.glob(os.path.join(input_dir, "solution_*.npz")))
     
     if not files:
         print("No solution files found.")
@@ -20,9 +25,6 @@ def main():
 
     n_files = len(files)
     fig, axes = plt.subplots(1, n_files, figsize=(5 * n_files, 5), dpi=100)
-    
-    if n_files == 1:
-        axes = [axes]
     
     if n_files == 1:
         axes = [axes]
@@ -59,7 +61,7 @@ def main():
         ax.set_aspect('equal')
 
     plt.tight_layout()
-    output_file = os.path.join(base_dir, args.output)
+    output_file = os.path.join(plots_dir, args.output)
     plt.savefig(output_file)
     print(f"Combined plot saved to {output_file}")
 
