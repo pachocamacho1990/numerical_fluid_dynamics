@@ -221,6 +221,15 @@ def main():
             diffusion_num = nu * dt / (dx**2)
             current_time = n * dt
             
+            # Check for NaN
+            import math
+            if math.isnan(u_max) or math.isnan(v_max) or math.isnan(cfl_val):
+                print(f"\n{'='*80}")
+                print(f"SIMULATION CRASHED: NaN detected at step {n} (time={current_time:.4f})")
+                print(f"Last valid values: u_max={u_max:.4f}, v_max={v_max:.4f}, CFL={cfl_val:.4f}")
+                print(f"{'='*80}\n")
+                break
+            
             # Determine stability status
             if cfl_val > 1.0 or diffusion_num > 0.25:
                 status = "✗ UNSTABLE"
@@ -241,6 +250,15 @@ def main():
                 'diffusion_num': diffusion_num,
                 'stable': cfl_val <= 1.0 and diffusion_num <= 0.25
             })
+        elif not args.verbose and not args.benchmark:
+            # Even in non-verbose mode, check for NaN periodically
+            if n % 100 == 0:
+                u_check = u.block_until_ready()
+                u_max_check = float(jnp.max(jnp.abs(u_check)))
+                import math
+                if math.isnan(u_max_check):
+                    print(f"\nSimulation crashed at step {n}: NaN detected")
+                    break
     
     if args.verbose:
         print("="*80 + "\n")

@@ -100,6 +100,16 @@ def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu, verbose=False):
         
         cfl_history.append(cfl)
         
+        # Check for NaN or instability
+        if np.isnan(u_max) or np.isnan(v_max) or np.isnan(cfl):
+            if verbose:
+                print(f"\n{'='*80}")
+                print(f"SIMULATION CRASHED: NaN detected at step {n} (time={n*dt:.4f})")
+                print(f"{'='*80}\n")
+            else:
+                print(f"\nSimulation crashed at step {n}: NaN detected")
+            break
+        
         # Verbose monitoring
         if verbose and (n % 50 == 0 or n == nt - 1):  # Print every 50 steps
             current_time = n * dt
