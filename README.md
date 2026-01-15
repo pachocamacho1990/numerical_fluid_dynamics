@@ -31,9 +31,38 @@ This project implements classical computational fluid dynamics (CFD) problems us
 git clone https://github.com/yourusername/numerical_fluid_dynamics.git
 cd numerical_fluid_dynamics
 
-# Install dependencies
+# Install dependencies in virtual environment
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
+deactivate
+
+# Optional: Install JAX with Metal support (Apple Silicon only)
+python -m venv venv_metal
+source venv_metal/bin/activate
+pip install -r requirements.txt
+pip install jax-metal
+deactivate
 ```
+
+### Using Virtual Environments
+
+**For NumPy or JAX CPU simulations:**
+```bash
+source venv/bin/activate
+python simulations/cavity_flow/cavity_flow.py
+deactivate
+```
+
+**For JAX Metal (GPU) simulations:**
+```bash
+source venv_metal/bin/activate
+python simulations/cavity_flow/cavity_flow_jax.py
+deactivate
+```
+
+> [!TIP]
+> The benchmark scripts (`run_benchmark.sh`, `run_high_re.sh`) automatically handle venv activation/deactivation.
 
 ### Run a Simulation
 ```bash
