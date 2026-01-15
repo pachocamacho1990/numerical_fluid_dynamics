@@ -18,7 +18,7 @@ source venv/bin/activate
 # Force CPU for this run in case environment has Metal
 # Note: In current setup venv only has CPU JAX anyway.
 export JAX_PLATFORMS=cpu
-python simulations/cavity_flow/cavity_flow_jax.py "$@"
+python simulations/cavity_flow/cavity_flow_jax.py --benchmark "$@"
 deactivate
 echo ""
 
@@ -29,7 +29,7 @@ if [ -d "venv_metal" ]; then
     source venv_metal/bin/activate
     # Ensure Metal is enabled (default in this venv, but explicit is good)
     # We rely on the script's internal config block which enables Metal if available
-    python simulations/cavity_flow/cavity_flow_jax.py "$@"
+    python simulations/cavity_flow/cavity_flow_jax.py --benchmark "$@"
     deactivate
 else
     echo "Skipping Metal Benchmark: venv_metal not found."
