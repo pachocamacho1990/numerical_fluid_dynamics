@@ -30,3 +30,10 @@ ENV/
 .idea/
 *.swp
 .DS_Store
+
+# Simulation Outputs
+*.png
+*.gif
+
+# Specific venvs
+venv_metal/
