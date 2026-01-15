@@ -31,9 +31,7 @@ ENV/
 *.swp
 .DS_Store
 
-# Simulation Outputs
-*.png
-*.gif
+
 
 # Specific venvs
 venv_metal/
