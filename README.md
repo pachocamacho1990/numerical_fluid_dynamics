@@ -131,6 +131,13 @@ When adding new simulations:
 3. Include visualization outputs in `plots/`
 4. Follow the structure of existing simulations
 
+## Acknowledgments
+
+The cavity flow simulation is based on **Step 11** from Lorena A. Barba's [CFD Python](https://github.com/barbagroup/CFDPython) course: "12 Steps to Navier-Stokes".
+
+**Citation:**  
+Barba, Lorena A., and Forsyth, Gilbert F. (2018). CFD Python: the 12 steps to Navier-Stokes equations. *Journal of Open Source Education*, 1(9), 21, https://doi.org/10.21105/jose.00021
+
 ## License
 
 MIT License - see LICENSE file for details

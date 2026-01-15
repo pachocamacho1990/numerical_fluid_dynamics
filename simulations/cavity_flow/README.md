@@ -2,6 +2,19 @@
 
 A 2D simulation of flow in a square cavity with a moving top lid, implemented using the Finite Difference Method. This follows "Step 11" of Lorena Barba's "12 Steps to Navier-Stokes".
 
+## Acknowledgment
+
+This implementation is based on **Step 11** from Lorena A. Barba's excellent [CFD Python](https://github.com/barbagroup/CFDPython) course: "12 Steps to Navier-Stokes". We have extended the original work with:
+- JAX-accelerated implementations (CPU and Metal GPU)
+- Comprehensive performance benchmarking
+- Real-time stability monitoring
+- Extensive stability analysis across Reynolds numbers
+
+**Original Course:**
+- Repository: [barbagroup/CFDPython](https://github.com/barbagroup/CFDPython)
+- Course Website: [12 Steps to Navier-Stokes](https://lorenabarba.com/blog/cfd-python-12-steps-to-navier-stokes/)
+- License: CC BY 4.0
+
 ## Method
 - **Equations**: 2D Incompressible Navier-Stokes
 - **Advection**: Backward Difference (Upwind)
@@ -226,3 +239,9 @@ Using the $201 \times 201$ grid, we successfully computed stable flow at $Re=100
 ## Theory
 
 See [Cavity Flow Theory](../../docs/cavity_flow_theory.md) for detailed mathematical derivations and discretization schemes.
+
+## References
+
+Barba, Lorena A., and Forsyth, Gilbert F. (2018). CFD Python: the 12 steps to Navier-Stokes equations. *Journal of Open Source Education*, 1(9), 21, https://doi.org/10.21105/jose.00021
+
+**GitHub Repository:** https://github.com/barbagroup/CFDPython
