@@ -14,8 +14,21 @@ The simulation produces a characteristic central vortex.
 
 ![Pressure Field and Streamlines](cavity_flow_result.png)
 
+
+## JAX Implementation
+A JAX-accelerated version is available in `cavity_flow_jax.py`.
+- **Method**: Same physical scheme, but uses `jax.jit` and `jax.lax.fori_loop` for the pressure solver.
+- **Run**:
+  ```bash
+  python simulations/cavity_flow/cavity_flow_jax.py
+  ```
+
+> [!NOTE]
+> For small grid sizes (like 41x41), the **JAX CPU** backend is typically fastest due to lower overhead compared to Metal/GPU.
+
 ## Usage
 Run from the repository root:
 ```bash
 python simulations/cavity_flow/cavity_flow.py
 ```
+
