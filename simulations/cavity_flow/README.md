@@ -31,6 +31,11 @@ The Courant-Friedrichs-Lewy (CFL) number is tracked for each time step to monito
 
 ![CFL Comparison](cfl_comparison.png)
 
+## Solutions Comparison
+Comparison of the final state (Pressure + Streamlines) across all implementations.
+
+![Solutions Comparison](solutions_comparison.png)
+
 ## Usage
 Run from the repository root:
 ```bash

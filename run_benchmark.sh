@@ -35,6 +35,14 @@ else
     echo "Skipping Metal Benchmark: venv_metal not found."
 fi
 echo ""
+
+# 4. Compare Solutions
+echo "[4/4] Generating Combined Solution Plot..."
+source venv/bin/activate
+python simulations/cavity_flow/compare_solutions.py
+deactivate
+echo ""
+
 echo "========================================================="
 echo "                  BENCHMARK COMPLETE                     "
 echo "========================================================="

@@ -115,6 +115,10 @@ if __name__ == "__main__":
     np.savetxt("simulations/cavity_flow/cfl_numpy.csv", cfl_history, delimiter=",")
     print("CFL history saved to simulations/cavity_flow/cfl_numpy.csv")
     
+    # Save Raw Solution (NPZ)
+    np.savez("simulations/cavity_flow/solution_numpy.npz", u=u, v=v, p=p)
+    print("Solution saved to simulations/cavity_flow/solution_numpy.npz")
+    
     print("Simulation complete. Generating plot...")
 
     fig = plt.figure(figsize=(11, 7), dpi=100)

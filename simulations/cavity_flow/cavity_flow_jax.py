@@ -179,13 +179,21 @@ def main():
     # Convert CFL history to numpy and save
     cfl_history = np.array(cfl_history)
     output_csv = f"simulations/cavity_flow/cfl_jax_{backend}.csv"
-    if backend == "METAL": # Normalize name if needed, usually it's upper case
+    output_npz = f"simulations/cavity_flow/solution_jax_{backend}.npz"
+    
+    if backend == "METAL": 
         output_csv = "simulations/cavity_flow/cfl_jax_metal.csv"
+        output_npz = "simulations/cavity_flow/solution_jax_metal.npz"
     elif backend == "cpu":
         output_csv = "simulations/cavity_flow/cfl_jax_cpu.csv"
+        output_npz = "simulations/cavity_flow/solution_jax_cpu.npz"
         
     np.savetxt(output_csv, cfl_history, delimiter=",")
     print(f"CFL history saved to {output_csv}")
+    
+    # Save Raw Solution (NPZ) - Convert to numpy first
+    np.savez(output_npz, u=np.array(u), v=np.array(v), p=np.array(p))
+    print(f"Solution saved to {output_npz}")
     
     duration = end_time - start_time
     print(f"Simulation complete. Duration: {duration:.4f}s ({nt/duration:.2f} steps/s)")
