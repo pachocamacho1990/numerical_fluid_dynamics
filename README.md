@@ -12,16 +12,28 @@ This project implements classical computational fluid dynamics (CFD) problems us
 
 ## Current Simulations
 
-### Lid-Driven Cavity Flow
+### Lid-Driven Cavity Flow (Explicit)
 2D incompressible Navier-Stokes simulation following Lorena Barba's "12 Steps to Navier-Stokes" (Step 11).
 
 - **Location**: [`simulations/cavity_flow/`](simulations/cavity_flow/)
 - **Documentation**: [Theory](docs/cavity_flow_theory.md) | [Usage](simulations/cavity_flow/README.md)
 - **Features**:
+  - Explicit finite difference scheme
   - Multiple Reynolds number configurations
   - Stability analysis (Re up to 7500)
   - CFL number tracking
-  - Performance benchmarking
+  - Real-time stability monitoring (`--verbose`)
+
+### Lid-Driven Cavity Flow (Implicit) 🚧
+*Coming Soon* - Unconditionally stable implicit scheme for high Reynolds numbers.
+
+- **Location**: [`simulations/cavity_flow_implicit/`](simulations/cavity_flow_implicit/)
+- **Documentation**: [Implicit Theory](docs/implicit_schemes_theory.md) | [Overview](simulations/cavity_flow_implicit/README.md)
+- **Planned Features**:
+  - Fractional Step (Projection) method
+  - Crank-Nicolson time integration
+  - No CFL stability constraint
+  - Stable at arbitrarily high Re
 
 ## Quick Start
 
@@ -98,8 +110,11 @@ numerical_fluid_dynamics/
 │       ├── cavity_flow.py    # NumPy implementation
 │       ├── cavity_flow_jax.py # JAX implementation
 │       └── README.md
+│   └── cavity_flow_implicit/  # Implicit scheme (coming soon)
+│       └── README.md
 ├── docs/                     # Mathematical theory
-│   └── cavity_flow_theory.md
+│   ├── cavity_flow_theory.md      # Explicit scheme theory
+│   └── implicit_schemes_theory.md # Implicit methods theory
 ├── run_benchmark.sh          # Baseline benchmark suite
 ├── run_high_re.sh            # High-Re benchmark
 └── requirements.txt
