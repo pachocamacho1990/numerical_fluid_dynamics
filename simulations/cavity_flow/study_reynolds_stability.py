@@ -124,17 +124,19 @@ def main():
     plt.grid(True, alpha=0.3)
     plt.savefig(os.path.join(plots_dir, "stability_velocity.png"))
     
-    # 2. CFL vs Time
+    # 2. CFL vs Time (Log-Log scale)
     plt.figure(figsize=(10, 6), dpi=100)
     for Re, data in results.items():
         ls = "-" if not data["crashed"] else "--"
-        plt.plot(data["cfl"], label=f"Re={Re}", linestyle=ls)
+        # Use range(1, len+1) for x-axis to avoid log(0)
+        time_steps = range(1, len(data["cfl"]) + 1)
+        plt.loglog(time_steps, data["cfl"], label=f"Re={Re}", linestyle=ls, linewidth=2)
         
     plt.xlabel("Time Step")
     plt.ylabel("CFL Number")
-    plt.title("CFL Evolution vs Reynolds Number")
+    plt.title("CFL Evolution vs Reynolds Number (Log-Log Scale)")
     plt.legend()
-    plt.grid(True, alpha=0.3)
+    plt.grid(True, alpha=0.3, which='both')
     plt.savefig(os.path.join(plots_dir, "stability_cfl.png"))
     
     print("Done.")
