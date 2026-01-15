@@ -3,7 +3,14 @@ import matplotlib.pyplot as plt
 import os
 import glob
 
+import glob
+import argparse
+
 def main():
+    parser = argparse.ArgumentParser(description="Compare Solutions")
+    parser.add_argument("--output", default="solutions_comparison.png", help="Output filename")
+    args = parser.parse_args()
+
     base_dir = "simulations/cavity_flow"
     files = sorted(glob.glob(os.path.join(base_dir, "solution_*.npz")))
     
@@ -17,12 +24,9 @@ def main():
     if n_files == 1:
         axes = [axes]
     
-    # Grid for plotting
-    nx, ny = 41, 41
-    x = np.linspace(0, 2, nx)
-    y = np.linspace(0, 2, ny)
-    X, Y = np.meshgrid(x, y)
-
+    if n_files == 1:
+        axes = [axes]
+    
     for i, fpath in enumerate(files):
         filename = os.path.basename(fpath)
         # Extract label from filename (solution_numpy.npz -> numpy, solution_jax_metal.npz -> jax_metal)
@@ -33,6 +37,12 @@ def main():
         u = data['u']
         v = data['v']
         p = data['p']
+        
+        # Grid for plotting (Dynamic)
+        ny, nx = p.shape
+        x = np.linspace(0, 2, nx)
+        y = np.linspace(0, 2, ny)
+        X, Y = np.meshgrid(x, y)
         
         ax = axes[i]
         # Contour plot of pressure
@@ -49,7 +59,7 @@ def main():
         ax.set_aspect('equal')
 
     plt.tight_layout()
-    output_file = os.path.join(base_dir, "solutions_comparison.png")
+    output_file = os.path.join(base_dir, args.output)
     plt.savefig(output_file)
     print(f"Combined plot saved to {output_file}")
 

@@ -13,18 +13,18 @@ from cavity_flow_jax import time_step
 
 def main():
     # Parameters matches Barba Step 11 defaults
-    nx = 41
-    ny = 41
-    nt = 700  # Run a bit longer to see instability
+    # High-Res for Stability Test (5x original)
+    nx = 201
+    ny = 201
+    nt = 5000  # More steps effectively, though physical time is less if dt is small
     nit = 50
     dx = 2 / (nx - 1)
     dy = 2 / (ny - 1)
-    dt = 0.001
+    dt = 0.0001 # Reduced dt for fine grid
     rho = 1.0
     
-    # Reynolds numbers to test
-    # Re = U * L / nu. With U=1, L=2 -> Re = 2 / nu  => nu = 2 / Re
-    re_values = [100, 400, 1000, 2500, 5000]
+    # Reynolds numbers to test (Testing limits with high res)
+    re_values = [100, 1000, 2500, 5000, 7500]
     
     results = {}
     

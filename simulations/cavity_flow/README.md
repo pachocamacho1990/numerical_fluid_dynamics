@@ -37,13 +37,24 @@ Comparison of the final state (Pressure + Streamlines) across all implementation
 ![Solutions Comparison](solutions_comparison.png)
 
 ## Stability Analysis
-We investigated the stability of the numerical scheme by increasing the Reynolds number (Re) while keeping the grid ($41 \times 41$) and time step ($0.001$) constant.
+We investigated the stability of the numerical scheme by increasing the Reynolds number (Re) on a finer grid ($81 \times 81$) with $\Delta t = 0.0005$.
 
 ![Stability Velocity](stability_velocity.png)
 ![Stability CFL](stability_cfl.png)
 
-> [!WARNING]
-> While the scheme may appear stable for short durations at high Re, the accuracy degrades, and physical oscillations (wiggles) may appear due to the lack of appropriate upwinding or turbulence modeling.
+> [!IMPORTANT]
+> **Resolution Matters**: increasing the grid to $201 \times 201$ makes the simulation **stable at Re=1000** (which previously crashed). However, instability returns at higher Reynolds numbers ($Re \ge 2500$) where it crashes around step 4500. This confirms that higher Re requires finer meshes ($Re_{\Delta x}$ constraint).
+
+## High Reynolds Comparison ($Re=1000$)
+Using the finer $201 \times 201$ grid, we successfully computed the stable flow at $Re=1000$.
+
+![Solution Re1000](solutions_comparison_re1000.png)
+
+> [!NOTE]
+> **Performance**:
+> - **NumPy**: ~39s
+> - **JAX (CPU)**: ~11s (**3.5x faster**)
+> - **JAX (Metal)**: ~22s (Slower than CPU for this grid size due to dispatch overhead)
 
 ## Usage
 Run from the repository root:

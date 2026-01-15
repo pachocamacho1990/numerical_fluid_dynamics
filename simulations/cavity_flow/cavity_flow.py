@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import argparse
 
 def build_up_b(b, rho, dt, u, v, dx, dy):
     b[1:-1, 1:-1] = (rho * (1 / dt * 
@@ -85,10 +86,18 @@ def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu):
     return u, v, p, cfl_history
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Cavity Flow Simulation (NumPy)")
+    parser.add_argument("--nx", type=int, default=41, help="Grid points in X and Y")
+    parser.add_argument("--nt", type=int, default=500, help="Number of time steps")
+    parser.add_argument("--re", type=float, default=None, help="Reynolds number (overrides nu)")
+    parser.add_argument("--dt", type=float, default=0.001, help="Time step")
+    parser.add_argument("--benchmark", action="store_true", help="Minimal output for benchmarking")
+    args = parser.parse_args()
+
     # Parameters
-    nx = 41
-    ny = 41
-    nt = 500
+    nx = args.nx
+    ny = args.nx # Square grid
+    nt = args.nt
     nit = 50
     c = 1
     dx = 2 / (nx - 1)
@@ -98,8 +107,16 @@ if __name__ == "__main__":
     X, Y = np.meshgrid(x, y)
 
     rho = 1
-    nu = .1
-    dt = .001
+    dt = args.dt
+    
+    # Calculate nu based on Re or default
+    # Default Barba Step 11: nu = 0.1 -> Re = 20
+    if args.re:
+        # Re = U * L / nu -> nu = U * L / Re. U=1, L=2
+        nu = 2.0 / args.re
+        print(f"Calculated nu={nu} for Re={args.re}")
+    else:
+        nu = .1
 
     u = np.zeros((ny, nx))
     v = np.zeros((ny, nx))
@@ -107,17 +124,19 @@ if __name__ == "__main__":
     b = np.zeros((ny, nx))
 
     print(f"Starting Cavity Flow Simulation (Barba Step 11)")
-    print(f"Grid: {nx}x{ny}, Re: {1*2/nu} (approx based on lid vel=1, L=2)")
+    print(f"Grid: {nx}x{ny}, Re: {1*2/nu:.2f}")
     
     u, v, p, cfl_history = cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu)
     
     # Save CFL data
     np.savetxt("simulations/cavity_flow/cfl_numpy.csv", cfl_history, delimiter=",")
-    print("CFL history saved to simulations/cavity_flow/cfl_numpy.csv")
+    if not args.benchmark:
+        print("CFL history saved to simulations/cavity_flow/cfl_numpy.csv")
     
     # Save Raw Solution (NPZ)
     np.savez("simulations/cavity_flow/solution_numpy.npz", u=u, v=v, p=p)
-    print("Solution saved to simulations/cavity_flow/solution_numpy.npz")
+    if not args.benchmark:
+        print("Solution saved to simulations/cavity_flow/solution_numpy.npz")
     
     print("Simulation complete. Generating plot...")
 

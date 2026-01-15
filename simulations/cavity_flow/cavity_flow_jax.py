@@ -129,19 +129,28 @@ def time_step(u, v, p, dt, dx, dy, rho, nu, nit):
 def main():
     parser = argparse.ArgumentParser(description="JAX Cavity Flow Simulation")
     parser.add_argument("--benchmark", action="store_true", help="Run in benchmark mode (minimal output)")
+    parser.add_argument("--nx", type=int, default=41, help="Grid points in X and Y")
+    parser.add_argument("--nt", type=int, default=500, help="Number of time steps")
+    parser.add_argument("--re", type=float, default=None, help="Reynolds number (overrides nu)")
+    parser.add_argument("--dt", type=float, default=0.001, help="Time step")
     args = parser.parse_args()
 
     # Parameters
-    nx = 41
-    ny = 41
-    nt = 500
+    nx = args.nx
+    ny = args.nx
+    nt = args.nt
     nit = 50
     dx = 2 / (nx - 1)
     dy = 2 / (ny - 1)
     
     rho = 1.0
-    nu = 0.1
-    dt = 0.001
+    dt = args.dt
+    
+    if args.re:
+        nu = 2.0 / args.re
+        print(f"Calculated nu={nu} for Re={args.re}")
+    else:
+        nu = 0.1
 
     # Initialization (JAX arrays)
     u = jnp.zeros((ny, nx))
