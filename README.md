@@ -5,7 +5,8 @@ A repository for learning and calculating numerical solutions to fluid flow prob
 ## Structure
 
 - **`docs/`**: Detailed mathematical documentation and derivations.
-    - [Navier-Stokes FDM Derivations](docs/navier_stokes_fdm.md)
+
+    - [Cavity Flow (Step 11) Theory](docs/cavity_flow_theory.md)
 - **`simulations/`**: Python scripts for specific flow problems.
     - **`cavity_flow/`**: Lid-Driven Cavity Flow using Finite Difference Method.
 
