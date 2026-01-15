@@ -130,6 +130,7 @@ def time_step(u, v, p, dt, dx, dy, rho, nu, nit):
 def main():
     parser = argparse.ArgumentParser(description="JAX Cavity Flow Simulation")
     parser.add_argument("--benchmark", action="store_true", help="Run in benchmark mode (minimal output)")
+    parser.add_argument("--verbose", action="store_true", help="Show real-time stability monitoring")
     parser.add_argument("--nx", type=int, default=41, help="Grid points in X and Y")
     parser.add_argument("--nt", type=int, default=500, help="Number of time steps")
     parser.add_argument("--re", type=float, default=None, help="Reynolds number (overrides nu)")
@@ -166,8 +167,17 @@ def main():
     p = jnp.zeros((ny, nx))
     
     backend = jax.default_backend()
-    print(f"JAX Backend: {backend}")
-    print(f"Starting Cavity Flow (JAX) - Grid: {nx}x{ny}, Steps: {nt}")
+    if not args.benchmark:
+        print(f"JAX Backend: {backend}")
+        print(f"Starting Cavity Flow (JAX) - Grid: {nx}x{ny}, Steps: {nt}")
+        
+        if args.verbose:
+            # Pre-flight stability check
+            dt_max_diffusion = dx**2 / (4 * nu)
+            print(f"\nPre-flight Stability Check:")
+            print(f"  Max dt (diffusion): {dt_max_diffusion:.6f}")
+            print(f"  Your dt: {dt:.6f}")
+            print(f"  Safety factor: {dt_max_diffusion/dt:.2f}x")
 
     # Warmup / Compilation
     print("Compiling JIT functions...")
@@ -180,15 +190,60 @@ def main():
     # Main Loop
     start_time = time.time()
     cfl_history = []
+    monitoring_data = []  # For verbose output
     
-    # We can iterate in Python, because the heavy lifting (nit=50 loops) is done inside the JIT function
-    iter_range = range(nt) if args.benchmark else tqdm(range(nt), desc="JAX Time Stepping")
+    # Progress display
+    if args.verbose:
+        print("\n" + "="*80)
+        print("REAL-TIME STABILITY MONITORING (JAX)")
+        print("="*80)
+        print(f"{'Step':<8} {'Time':<10} {'u_max':<8} {'v_max':<8} {'CFL':<8} {'D_num':<8} {'Status':<10}")
+        print("-"*80)
+        iter_range = range(nt)
+    elif args.benchmark:
+        iter_range = range(nt)
+    else:
+        iter_range = tqdm(range(nt), desc="JAX Time Stepping")
     
     for n in iter_range:
         u, v, p, cfl = time_step(u, v, p, dt, dx, dy, rho, nu, nit)
         cfl_history.append(cfl)
-        # We don't block_until_ready inside the loop to allow async dispatch, 
-        # unless profiling explicitly.
+        
+        # Verbose monitoring
+        if args.verbose and (n % 50 == 0 or n == nt - 1):
+            # Force sync to get actual values
+            u_sync = u.block_until_ready()
+            v_sync = v.block_until_ready()
+            cfl_val = float(cfl)
+            
+            u_max = float(jnp.max(jnp.abs(u_sync)))
+            v_max = float(jnp.max(jnp.abs(v_sync)))
+            diffusion_num = nu * dt / (dx**2)
+            current_time = n * dt
+            
+            # Determine stability status
+            if cfl_val > 1.0 or diffusion_num > 0.25:
+                status = "✗ UNSTABLE"
+            elif cfl_val > 0.8 or diffusion_num > 0.2:
+                status = "⚠ WARNING"
+            else:
+                status = "✓ STABLE"
+            
+            print(f"{n:<8} {current_time:<10.4f} {u_max:<8.4f} {v_max:<8.4f} {cfl_val:<8.4f} {diffusion_num:<8.4f} {status:<10}")
+            
+            # Store monitoring data
+            monitoring_data.append({
+                'step': n,
+                'time': current_time,
+                'u_max': u_max,
+                'v_max': v_max,
+                'cfl': cfl_val,
+                'diffusion_num': diffusion_num,
+                'stable': cfl_val <= 1.0 and diffusion_num <= 0.25
+            })
+    
+    if args.verbose:
+        print("="*80 + "\n")
     
     u = u.block_until_ready() # Sync at the end
     end_time = time.time()
@@ -206,7 +261,18 @@ def main():
         output_npz = os.path.join(output_dir, "solution_jax_cpu.npz")
         
     np.savetxt(output_csv, cfl_history, delimiter=",")
-    print(f"CFL history saved to {output_csv}")
+    if not args.benchmark:
+        print(f"CFL history saved to {output_csv}")
+    
+    # Save detailed monitoring data if verbose
+    if args.verbose and monitoring_data:
+        import csv
+        monitor_path = os.path.join(output_dir, f"monitoring_jax_{backend.lower()}.csv")
+        with open(monitor_path, 'w', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=['step', 'time', 'u_max', 'v_max', 'cfl', 'diffusion_num', 'stable'])
+            writer.writeheader()
+            writer.writerows(monitoring_data)
+        print(f"Monitoring data saved to {monitor_path}")
     
     # Save Raw Solution (NPZ) - Convert to numpy first
     np.savez(output_npz, u=np.array(u), v=np.array(v), p=np.array(p))

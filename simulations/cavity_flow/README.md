@@ -37,6 +37,7 @@ python simulations/cavity_flow/cavity_flow.py --benchmark
 - `--re FLOAT`: Reynolds number (overrides nu)
 - `--dt FLOAT`: Time step size (default: 0.001)
 - `--output-dir PATH`: Output directory for data files (default: outputs/baseline)
+- `--verbose`: Show real-time stability monitoring
 - `--benchmark`: Minimal output mode
 
 ### JAX Implementation (`cavity_flow_jax.py`)
@@ -58,6 +59,91 @@ python simulations/cavity_flow/cavity_flow_jax.py --re 1000 --nx 201 --nt 5000 -
 
 > [!NOTE]
 > For small grids (41x41), **JAX CPU** is fastest (~5.7x faster than NumPy). Metal GPU has overhead that dominates for small problems.
+
+## Real-Time Stability Monitoring
+
+Both implementations support **verbose mode** for real-time monitoring of numerical stability during simulation.
+
+### Enable Verbose Mode
+
+```bash
+# NumPy with verbose monitoring
+python simulations/cavity_flow/cavity_flow.py --verbose
+
+# JAX with verbose monitoring
+python simulations/cavity_flow/cavity_flow_jax.py --verbose
+```
+
+### What You See
+
+**Pre-flight Check:**
+```
+Pre-flight Stability Check:
+  Max dt (diffusion): 0.006250
+  Your dt: 0.001000
+  Safety factor: 6.25x
+```
+
+**Real-time Monitoring:**
+```
+================================================================================
+REAL-TIME STABILITY MONITORING
+================================================================================
+Step     Time       u_max    v_max    CFL      D_num    Status    
+--------------------------------------------------------------------------------
+0        0.0000     1.0000   0.0000   0.0200   0.0400   ✓ STABLE  
+50       0.0500     1.0000   0.1255   0.0225   0.0400   ✓ STABLE  
+100      0.1000     1.0000   0.1463   0.0229   0.0400   ✓ STABLE  
+150      0.1500     1.0000   0.1763   0.0235   0.0400   ✓ STABLE  
+```
+
+### Monitoring Metrics
+
+| Metric | Description | Stability Criterion |
+|--------|-------------|---------------------|
+| **u_max** | Maximum x-velocity | Informational |
+| **v_max** | Maximum y-velocity | Informational |
+| **CFL** | Courant-Friedrichs-Lewy number | Must be < 1.0 |
+| **D_num** | Diffusion number: $\nu \Delta t / \Delta x^2$ | Must be ≤ 0.25 |
+
+### Status Indicators
+
+- **✓ STABLE**: CFL < 0.8 and D_num < 0.2 (safe)
+- **⚠ WARNING**: CFL ≥ 0.8 or D_num ≥ 0.2 (borderline)
+- **✗ UNSTABLE**: CFL > 1.0 or D_num > 0.25 (will crash)
+
+### Output Files
+
+Verbose mode generates additional monitoring data:
+
+```
+outputs/baseline/
+├── cfl_numpy.csv              # CFL history (all modes)
+├── monitoring_numpy.csv       # Detailed metrics (verbose only)
+├── solution_numpy.npz         # Final solution
+└── ...
+```
+
+**Monitoring CSV format:**
+```csv
+step,time,u_max,v_max,cfl,diffusion_num,stable
+0,0.0,1.0,0.0,0.02,0.04,True
+50,0.05,1.0,0.125,0.0225,0.04,True
+...
+```
+
+### When to Use Verbose Mode
+
+**Use `--verbose` when:**
+- Testing new parameter combinations
+- Debugging instability issues
+- Learning about numerical stability
+- Running high Reynolds number simulations
+
+**Use default mode when:**
+- Running production benchmarks
+- Parameters are known to be stable
+- You just want the final result
 
 ## Output Structure
 

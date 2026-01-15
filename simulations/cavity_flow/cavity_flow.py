@@ -33,15 +33,27 @@ def pressure_poisson(p, dx, dy, b):
         
     return p
 
-def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu):
+def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu, verbose=False):
     un = np.empty_like(u)
     vn = np.empty_like(v)
     b = np.zeros((ny, nx))
     
-    # CFL History
+    # Monitoring data
     cfl_history = []
+    monitoring_data = []  # For verbose CSV output
 
-    for n in tqdm(range(nt), desc="Time Stepping"):
+    # Progress display
+    if verbose:
+        print("\n" + "="*80)
+        print("REAL-TIME STABILITY MONITORING")
+        print("="*80)
+        print(f"{'Step':<8} {'Time':<10} {'u_max':<8} {'v_max':<8} {'CFL':<8} {'D_num':<8} {'Status':<10}")
+        print("-"*80)
+        iter_range = range(nt)
+    else:
+        iter_range = tqdm(range(nt), desc="Time Stepping")
+
+    for n in iter_range:
         un = u.copy()
         vn = v.copy()
         
@@ -80,11 +92,43 @@ def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu):
         v[:, 0]  = 0
         v[:, -1] = 0
         
-        # Calculate CFL
-        cfl = dt * (np.max(np.abs(u)) / dx + np.max(np.abs(v)) / dy)
+        # Calculate monitoring metrics
+        u_max = np.max(np.abs(u))
+        v_max = np.max(np.abs(v))
+        cfl = dt * (u_max / dx + v_max / dy)
+        diffusion_num = nu * dt / (dx**2)  # Should be ≤ 0.25 for stability
+        
         cfl_history.append(cfl)
         
-    return u, v, p, cfl_history
+        # Verbose monitoring
+        if verbose and (n % 50 == 0 or n == nt - 1):  # Print every 50 steps
+            current_time = n * dt
+            
+            # Determine stability status
+            if cfl > 1.0 or diffusion_num > 0.25:
+                status = "✗ UNSTABLE"
+            elif cfl > 0.8 or diffusion_num > 0.2:
+                status = "⚠ WARNING"
+            else:
+                status = "✓ STABLE"
+            
+            print(f"{n:<8} {current_time:<10.4f} {u_max:<8.4f} {v_max:<8.4f} {cfl:<8.4f} {diffusion_num:<8.4f} {status:<10}")
+            
+            # Store monitoring data
+            monitoring_data.append({
+                'step': n,
+                'time': current_time,
+                'u_max': u_max,
+                'v_max': v_max,
+                'cfl': cfl,
+                'diffusion_num': diffusion_num,
+                'stable': cfl <= 1.0 and diffusion_num <= 0.25
+            })
+    
+    if verbose:
+        print("="*80 + "\n")
+        
+    return u, v, p, cfl_history, monitoring_data if verbose else None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Cavity Flow Simulation (NumPy)")
@@ -93,6 +137,7 @@ if __name__ == "__main__":
     parser.add_argument("--re", type=float, default=None, help="Reynolds number (overrides nu)")
     parser.add_argument("--dt", type=float, default=0.001, help="Time step")
     parser.add_argument("--benchmark", action="store_true", help="Minimal output for benchmarking")
+    parser.add_argument("--verbose", action="store_true", help="Show real-time stability monitoring")
     parser.add_argument("--output-dir", type=str, default="outputs/baseline", help="Output directory for data files")
     args = parser.parse_args()
     
@@ -131,16 +176,39 @@ if __name__ == "__main__":
     p = np.zeros((ny, nx))
     b = np.zeros((ny, nx))
 
-    print(f"Starting Cavity Flow Simulation (Barba Step 11)")
-    print(f"Grid: {nx}x{ny}, Re: {1*2/nu:.2f}")
+    if not args.benchmark:
+        print(f"Starting Cavity Flow Simulation (Barba Step 11)")
+        print(f"Grid: {nx}x{ny}, Re: {1*2/nu:.2f}")
+        if args.verbose:
+            # Pre-flight stability check
+            dt_max_diffusion = dx**2 / (4 * nu)
+            print(f"\nPre-flight Stability Check:")
+            print(f"  Max dt (diffusion): {dt_max_diffusion:.6f}")
+            print(f"  Your dt: {dt:.6f}")
+            print(f"  Safety factor: {dt_max_diffusion/dt:.2f}x")
     
-    u, v, p, cfl_history = cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu)
+    result = cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu, verbose=args.verbose)
+    if args.verbose:
+        u, v, p, cfl_history, monitoring_data = result
+    else:
+        u, v, p, cfl_history = result[:4]
+        monitoring_data = None
     
     # Save CFL data
     cfl_path = os.path.join(output_dir, "cfl_numpy.csv")
     np.savetxt(cfl_path, cfl_history, delimiter=",")
     if not args.benchmark:
         print(f"CFL history saved to {cfl_path}")
+    
+    # Save detailed monitoring data if verbose
+    if args.verbose and monitoring_data:
+        import csv
+        monitor_path = os.path.join(output_dir, "monitoring_numpy.csv")
+        with open(monitor_path, 'w', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=['step', 'time', 'u_max', 'v_max', 'cfl', 'diffusion_num', 'stable'])
+            writer.writeheader()
+            writer.writerows(monitoring_data)
+        print(f"Monitoring data saved to {monitor_path}")
     
     # Save Raw Solution (NPZ)
     solution_path = os.path.join(output_dir, "solution_numpy.npz")
