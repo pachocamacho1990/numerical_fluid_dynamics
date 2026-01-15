@@ -48,11 +48,14 @@ Accelerated version using JAX with JIT compilation.
 # Auto-detect backend (CPU or Metal)
 python simulations/cavity_flow/cavity_flow_jax.py
 
-# Force CPU backend
+# Force CPU backend (recommended for most cases)
 JAX_PLATFORMS=cpu python simulations/cavity_flow/cavity_flow_jax.py
 
-# High Reynolds number
-python simulations/cavity_flow/cavity_flow_jax.py --re 1000 --nx 201 --nt 5000 --dt 0.0001
+# High Reynolds number with CPU backend
+JAX_PLATFORMS=cpu python simulations/cavity_flow/cavity_flow_jax.py --re 1000 --nx 201 --nt 5000 --dt 0.0001
+
+# Verbose monitoring with CPU backend
+JAX_PLATFORMS=cpu python simulations/cavity_flow/cavity_flow_jax.py --verbose
 ```
 
 **Arguments:** Same as NumPy version
@@ -70,8 +73,8 @@ Both implementations support **verbose mode** for real-time monitoring of numeri
 # NumPy with verbose monitoring
 python simulations/cavity_flow/cavity_flow.py --verbose
 
-# JAX with verbose monitoring
-python simulations/cavity_flow/cavity_flow_jax.py --verbose
+# JAX CPU with verbose monitoring (recommended)
+JAX_PLATFORMS=cpu python simulations/cavity_flow/cavity_flow_jax.py --verbose
 ```
 
 ### What You See
