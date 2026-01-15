@@ -36,6 +36,9 @@ def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu):
     vn = np.empty_like(v)
     b = np.zeros((ny, nx))
     
+    # CFL History
+    cfl_history = []
+
     for n in tqdm(range(nt), desc="Time Stepping"):
         un = u.copy()
         vn = v.copy()
@@ -75,7 +78,11 @@ def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu):
         v[:, 0]  = 0
         v[:, -1] = 0
         
-    return u, v, p
+        # Calculate CFL
+        cfl = dt * (np.max(np.abs(u)) / dx + np.max(np.abs(v)) / dy)
+        cfl_history.append(cfl)
+        
+    return u, v, p, cfl_history
 
 if __name__ == "__main__":
     # Parameters
@@ -102,7 +109,11 @@ if __name__ == "__main__":
     print(f"Starting Cavity Flow Simulation (Barba Step 11)")
     print(f"Grid: {nx}x{ny}, Re: {1*2/nu} (approx based on lid vel=1, L=2)")
     
-    u, v, p = cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu)
+    u, v, p, cfl_history = cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu)
+    
+    # Save CFL data
+    np.savetxt("simulations/cavity_flow/cfl_numpy.csv", cfl_history, delimiter=",")
+    print("CFL history saved to simulations/cavity_flow/cfl_numpy.csv")
     
     print("Simulation complete. Generating plot...")
 

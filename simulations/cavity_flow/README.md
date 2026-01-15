@@ -26,6 +26,11 @@ A JAX-accelerated version is available in `cavity_flow_jax.py`.
 > [!NOTE]
 > For small grid sizes (like 41x41), the **JAX CPU** backend is typically fastest due to lower overhead compared to Metal/GPU.
 
+## CFL Analysis
+The Courant-Friedrichs-Lewy (CFL) number is tracked for each time step to monitor stability.
+
+![CFL Comparison](cfl_comparison.png)
+
 ## Usage
 Run from the repository root:
 ```bash

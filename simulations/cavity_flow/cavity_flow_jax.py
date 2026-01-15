@@ -119,7 +119,12 @@ def time_step(u, v, p, dt, dx, dy, rho, nu, nit):
     v = v.at[:, 0].set(0)
     v = v.at[:, -1].set(0)
     
-    return u, v, p
+    v = v.at[:, -1].set(0)
+    
+    # Calculate CFL (Max velocity)
+    cfl = dt * (jnp.max(jnp.abs(u))/dx + jnp.max(jnp.abs(v))/dy)
+    
+    return u, v, p, cfl
 
 def main():
     parser = argparse.ArgumentParser(description="JAX Cavity Flow Simulation")
@@ -150,24 +155,37 @@ def main():
     # Warmup / Compilation
     print("Compiling JIT functions...")
     start_warmup = time.time()
-    _ = time_step(u, v, p, dt, dx, dy, rho, nu, nit)
+    _, _, _, _ = time_step(u, v, p, dt, dx, dy, rho, nu, nit)
     u = u.block_until_ready() # Force execution
     end_warmup = time.time()
     print(f"Compilation finished in {end_warmup - start_warmup:.4f}s")
 
     # Main Loop
     start_time = time.time()
+    cfl_history = []
     
     # We can iterate in Python, because the heavy lifting (nit=50 loops) is done inside the JIT function
     iter_range = range(nt) if args.benchmark else tqdm(range(nt), desc="JAX Time Stepping")
     
     for n in iter_range:
-        u, v, p = time_step(u, v, p, dt, dx, dy, rho, nu, nit)
+        u, v, p, cfl = time_step(u, v, p, dt, dx, dy, rho, nu, nit)
+        cfl_history.append(cfl)
         # We don't block_until_ready inside the loop to allow async dispatch, 
         # unless profiling explicitly.
     
     u = u.block_until_ready() # Sync at the end
     end_time = time.time()
+    
+    # Convert CFL history to numpy and save
+    cfl_history = np.array(cfl_history)
+    output_csv = f"simulations/cavity_flow/cfl_jax_{backend}.csv"
+    if backend == "METAL": # Normalize name if needed, usually it's upper case
+        output_csv = "simulations/cavity_flow/cfl_jax_metal.csv"
+    elif backend == "cpu":
+        output_csv = "simulations/cavity_flow/cfl_jax_cpu.csv"
+        
+    np.savetxt(output_csv, cfl_history, delimiter=",")
+    print(f"CFL history saved to {output_csv}")
     
     duration = end_time - start_time
     print(f"Simulation complete. Duration: {duration:.4f}s ({nt/duration:.2f} steps/s)")
