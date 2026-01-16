@@ -24,16 +24,18 @@ This project implements classical computational fluid dynamics (CFD) problems us
   - CFL number tracking
   - Real-time stability monitoring (`--verbose`)
 
-### Lid-Driven Cavity Flow (Implicit) 🚧
-*Coming Soon* - Unconditionally stable implicit scheme for high Reynolds numbers.
+### Lid-Driven Cavity Flow (Implicit) ✅
+Unconditionally stable implicit scheme using Fractional Step (Projection) method.
 
 - **Location**: [`simulations/cavity_flow_implicit/`](simulations/cavity_flow_implicit/)
-- **Documentation**: [Implicit Theory](docs/implicit_schemes_theory.md) | [Overview](simulations/cavity_flow_implicit/README.md)
-- **Planned Features**:
-  - Fractional Step (Projection) method
-  - Crank-Nicolson time integration
-  - No CFL stability constraint
-  - Stable at arbitrarily high Re
+- **Documentation**: [Implicit Theory](docs/implicit_schemes_theory.md) | [Usage](simulations/cavity_flow_implicit/README.md)
+- **Features**:
+  - Fractional Step (Chorin-Temam) method
+  - Crank-Nicolson time integration (2nd order)
+  - ADI solver for implicit diffusion
+  - No diffusion stability constraint
+  - Allows 10-100× larger timesteps
+  - Stable at high Reynolds numbers
 
 ## Quick Start
 
