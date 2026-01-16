@@ -96,6 +96,19 @@ def cavity_flow_implicit(nt, u, v, p, dt, dx, dy, rho, nu, verbose=False, nit_pr
         
         cfl_history.append(cfl)
         
+        # Check for NaN values (simulation crashed)
+        if np.isnan(u_max) or np.isnan(v_max) or np.isnan(cfl):
+            current_time = n * dt
+            if verbose:
+                print(f"\n{'='*80}")
+                print(f"SIMULATION CRASHED at step {n} (t={current_time:.4f})")
+                print(f"NaN detected in velocity or CFL")
+                print(f"{'='*80}\n")
+            else:
+                print(f"\nSimulation crashed at step {n} (t={current_time:.4f}) - NaN detected")
+            # Return current state before crash
+            return u, v, p, cfl_history, monitoring_data if verbose else None
+        
         # Verbose monitoring
         if verbose and (n % 50 == 0 or n == nt - 1):
             current_time = n * dt
@@ -237,8 +250,9 @@ def main():
              u=u, v=v, p=p, nx=nx, ny=ny, L=L, Re=args.re, dt=dt, nt=nt)
     
     # Save CFL history
+    actual_steps = len(cfl_history)
     np.savetxt(os.path.join(output_dir, 'cfl_implicit.csv'),
-               np.column_stack([np.arange(nt), cfl_history]),
+               np.column_stack([np.arange(actual_steps), cfl_history]),
                delimiter=',', header='step,cfl', comments='')
     
     # Save monitoring data if verbose
@@ -254,10 +268,13 @@ def main():
         print(f"Solution saved to {os.path.join(output_dir, 'solution_implicit.npz')}")
         print(f"CFL history saved to {os.path.join(output_dir, 'cfl_implicit.csv')}")
         
-        # Generate plot
-        print("Generating plot...")
-        plot_results(u, v, p, nx, ny, L,
-                    output_file=os.path.join(plots_dir, 'cavity_flow_implicit_result.png'))
+        # Generate plot only if solution is valid (no NaN)
+        if not (np.isnan(u).any() or np.isnan(v).any() or np.isnan(p).any()):
+            print("Generating plot...")
+            plot_results(u, v, p, nx, ny, L,
+                        output_file=os.path.join(plots_dir, 'cavity_flow_implicit_result.png'))
+        else:
+            print("Skipping plot generation (solution contains NaN values)")
     
     if args.benchmark:
         # Print only timing for benchmarking
