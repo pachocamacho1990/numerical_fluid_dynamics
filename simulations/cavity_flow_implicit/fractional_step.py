@@ -15,11 +15,15 @@ from adi_solver import adi_helmholtz_2d, laplacian_2d
 
 def compute_advection(u, v, dx, dy):
     """
-    Compute advection terms using backward differences (upwind).
+    Compute advection terms using First-Order Upwind scheme.
+    Stable for both positive and negative velocities (recirculating flow).
     
     Advection terms:
         adv_u = u * du/dx + v * du/dy
         adv_v = u * dv/dx + v * dv/dy
+    
+    Uses conditional branching (np.where) to select backward or forward differences
+    based on the local velocity direction.
     
     Args:
         u, v: Velocity components (ny, nx)
@@ -33,19 +37,34 @@ def compute_advection(u, v, dx, dy):
     adv_u = np.zeros_like(u)
     adv_v = np.zeros_like(v)
     
-    # Interior points using backward differences
-    # du/dx ≈ (u[i,j] - u[i,j-1]) / dx
-    # du/dy ≈ (u[i,j] - u[i-1,j]) / dy
+    # 1. Advection for U-momentum: u*du/dx + v*du/dy
+    u_c = u[1:-1, 1:-1] # Center
+    v_c = v[1:-1, 1:-1]
     
-    adv_u[1:, 1:] = (
-        u[1:, 1:] * (u[1:, 1:] - u[1:, :-1]) / dx +
-        v[1:, 1:] * (u[1:, 1:] - u[:-1, 1:]) / dy
-    )
+    # u * du/dx
+    du_dx_b = (u[1:-1, 1:-1] - u[1:-1, :-2]) / dx # Backward
+    du_dx_f = (u[1:-1, 2:] - u[1:-1, 1:-1]) / dx  # Forward
+    term_x_u = np.where(u_c > 0, u_c * du_dx_b, u_c * du_dx_f)
     
-    adv_v[1:, 1:] = (
-        u[1:, 1:] * (v[1:, 1:] - v[1:, :-1]) / dx +
-        v[1:, 1:] * (v[1:, 1:] - v[:-1, 1:]) / dy
-    )
+    # v * du/dy
+    du_dy_b = (u[1:-1, 1:-1] - u[:-2, 1:-1]) / dy # Backward
+    du_dy_f = (u[2:, 1:-1] - u[1:-1, 1:-1]) / dy  # Forward
+    term_y_u = np.where(v_c > 0, v_c * du_dy_b, v_c * du_dy_f)
+    
+    adv_u[1:-1, 1:-1] = term_x_u + term_y_u
+    
+    # 2. Advection for V-momentum: u*dv/dx + v*dv/dy
+    # u * dv/dx
+    dv_dx_b = (v[1:-1, 1:-1] - v[1:-1, :-2]) / dx
+    dv_dx_f = (v[1:-1, 2:] - v[1:-1, 1:-1]) / dx
+    term_x_v = np.where(u_c > 0, u_c * dv_dx_b, u_c * dv_dx_f)
+    
+    # v * dv/dy
+    dv_dy_b = (v[1:-1, 1:-1] - v[:-2, 1:-1]) / dy
+    dv_dy_f = (v[2:, 1:-1] - v[1:-1, 1:-1]) / dy
+    term_y_v = np.where(v_c > 0, v_c * dv_dy_b, v_c * dv_dy_f)
+    
+    adv_v[1:-1, 1:-1] = term_x_v + term_y_v
     
     return adv_u, adv_v
 

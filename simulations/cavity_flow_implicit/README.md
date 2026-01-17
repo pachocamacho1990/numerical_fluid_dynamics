@@ -39,6 +39,7 @@ The implementation uses the **Chorin-Temam Projection Method**:
 - **Crank-Nicolson:** 2nd-order accurate implicit time stepping for diffusion
 - **ADI (Alternating Direction Implicit):** Efficient solution of 2D Helmholtz equations
 - **Thomas Algorithm:** O(n) tridiagonal solver for ADI sweeps
+- **Upwind Advection:** 1st-order conditional upwind scheme for stable advection in recirculating flow
 
 ## Directory Structure
 
