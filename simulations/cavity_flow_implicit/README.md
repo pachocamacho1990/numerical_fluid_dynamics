@@ -180,7 +180,10 @@ JAX_PLATFORMS=cpu python simulations/cavity_flow_implicit/cavity_flow_implicit_j
 |--------|----------------|-----------|-------------------------|---------|
 | Implicit | NumPy | ~5.8 | 517s | 1x |
 | Implicit | JAX (CPU) | ~47.7 | 63s | **8.2x** |
-| Implicit | JAX (GPU) | TBD | TBD | **>10x** |
+| Implicit | JAX (GPU) | 17.5 | 57s | 3x |
+
+> [!NOTE]
+> **CPU outperforms Metal GPU** for implicit schemes because the ADI solver uses sequential tridiagonal solves (Thomas algorithm) that don't parallelize well on GPUs.
 
 ### Implementation Details
 - **`thomas_solver_jax.py`**: Tridiagonal solver using `jax.lax.scan`

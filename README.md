@@ -45,17 +45,17 @@ Unconditionally stable implicit scheme using Fractional Step (Projection) method
 git clone https://github.com/yourusername/numerical_fluid_dynamics.git
 cd numerical_fluid_dynamics
 
-# Install dependencies in virtual environment
+# Install JAX CPU environment (recommended for most use cases)
 python -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-cpu.txt
 deactivate
 
-# Optional: Install JAX with Metal support (Apple Silicon only)
+# Optional: Install JAX Metal GPU environment (Apple Silicon only)
+# Note: Uses pinned JAX 0.5.0 for jax-metal compatibility
 python -m venv venv_metal
 source venv_metal/bin/activate
-pip install -r requirements.txt
-pip install jax-metal
+pip install -r requirements-metal.txt
 deactivate
 ```
 

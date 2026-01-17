@@ -6,6 +6,7 @@ This is the JAX version for GPU acceleration.
 
 import jax.numpy as jnp
 from jax import jit
+from functools import partial
 from adi_solver_jax import adi_helmholtz_2d_jax, laplacian_2d_jax
 
 
@@ -84,7 +85,7 @@ def predictor_step_jax(u, v, dt, dx, dy, nu):
     return u_star, v_star
 
 
-@jit(static_argnames=['nit'])
+@partial(jit, static_argnums=(7,))
 def pressure_poisson_jax(p, u_star, v_star, dt, dx, dy, rho, nit=50):
     """
     Solve pressure Poisson equation (JAX version).
