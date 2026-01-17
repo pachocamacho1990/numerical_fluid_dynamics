@@ -1,5 +1,4 @@
+# Base dependencies for numerical fluid dynamics simulations
 numpy
 matplotlib
 tqdm
-jax
-jax-metal

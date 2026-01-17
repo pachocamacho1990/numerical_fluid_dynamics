@@ -1,0 +1,3 @@
+# JAX CPU environment (latest stable JAX)
+-r requirements.txt
+jax

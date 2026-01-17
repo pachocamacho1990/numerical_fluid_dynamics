@@ -9,11 +9,17 @@ This version uses JAX for GPU/TPU acceleration.
 """
 
 import jax
-# Enable 64-bit precision for numerical stability in implicit solvers
-jax.config.update("jax_enable_x64", True)
+# Enable 64-bit precision only on backends that support it (not Metal)
+import os as _os
+if _os.environ.get('JAX_PLATFORMS', '') != 'METAL' and 'metal' not in str(jax.devices()).lower():
+    try:
+        jax.config.update("jax_enable_x64", True)
+    except Exception:
+        pass
 
 import jax.numpy as jnp
 from jax import jit, lax
+from functools import partial
 import numpy as np
 import argparse
 import time
@@ -38,7 +44,7 @@ def initialize_fields(nx, ny):
     return u, v, p
 
 
-@jit(static_argnames=['nit_pressure', 'nt_chunk'])
+@partial(jit, static_argnums=(8, 9))
 def simulation_chunk(u, v, p, dt, dx, dy, rho, nu, nit_pressure, nt_chunk):
     """
     Run a chunk of time steps using lax.scan for efficiency.

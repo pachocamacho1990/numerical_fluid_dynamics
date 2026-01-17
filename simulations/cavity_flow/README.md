@@ -235,6 +235,14 @@ Using the $201 \times 201$ grid, we successfully computed stable flow at $Re=100
 > - **NumPy**: ~39s
 > - **JAX (CPU)**: ~11s (**3.5x faster**)
 > - **JAX (Metal)**: ~22s (Slower than CPU due to dispatch overhead)
+>
+> **CPU vs Metal Crossover** (explicit scheme):
+> | Grid Size | CPU (fps) | Metal (fps) | Winner |
+> |-----------|-----------|-------------|--------|
+> | 501×501 | 56.0 | 38.0 | CPU (1.5x) |
+> | 1001×1001 | 8.1 | **8.9** | Metal (1.1x) |
+>
+> Metal GPU only wins at ~1 million+ grid points.
 
 ## Theory
 

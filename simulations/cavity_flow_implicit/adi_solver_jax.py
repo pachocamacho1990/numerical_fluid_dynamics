@@ -9,6 +9,7 @@ Uses JAX's vmap and lax.scan for efficient parallel and sequential operations.
 import jax.numpy as jnp
 from jax import jit, vmap
 import jax.lax as lax
+from functools import partial
 from thomas_solver_jax import thomas_algorithm_jax, build_tridiagonal_diffusion_jax
 
 
@@ -35,7 +36,7 @@ def laplacian_2d_jax(u, dx, dy):
     return lap
 
 
-@jit(static_argnames=['bc_type'])
+@partial(jit, static_argnums=(5,))
 def adi_helmholtz_2d_jax(u, rhs, alpha, dx, dy, bc_type='dirichlet'):
     """
     Solve (I - alpha * Laplacian) u = rhs using ADI (JAX version).

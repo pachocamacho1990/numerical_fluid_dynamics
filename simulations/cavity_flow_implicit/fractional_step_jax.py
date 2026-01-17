@@ -6,34 +6,47 @@ This is the JAX version for GPU acceleration.
 
 import jax.numpy as jnp
 from jax import jit
+from functools import partial
 from adi_solver_jax import adi_helmholtz_2d_jax, laplacian_2d_jax
 
 
 @jit
 def compute_advection_jax(u, v, dx, dy):
     """
-    Compute advection terms using backward differences (JAX version).
-    
-    Args:
-        u, v: Velocity components (ny, nx)
-        dx, dy: Grid spacing
-    
-    Returns:
-        adv_u, adv_v: Advection terms
+    Compute advection terms using First-Order Upwind scheme (JAX).
+    Stable for both positive and negative velocities.
     """
     adv_u = jnp.zeros_like(u)
     adv_v = jnp.zeros_like(v)
     
-    # Interior points using backward differences
-    adv_u = adv_u.at[1:, 1:].set(
-        u[1:, 1:] * (u[1:, 1:] - u[1:, :-1]) / dx +
-        v[1:, 1:] * (u[1:, 1:] - u[:-1, 1:]) / dy
-    )
+    # 1. Advection for U-momentum: u*du/dx + v*du/dy
+    u_c = u[1:-1, 1:-1] # Center
+    v_c = v[1:-1, 1:-1] # Center (approx, ideally should be colocated or averaged)
     
-    adv_v = adv_v.at[1:, 1:].set(
-        u[1:, 1:] * (v[1:, 1:] - v[1:, :-1]) / dx +
-        v[1:, 1:] * (v[1:, 1:] - v[:-1, 1:]) / dy
-    )
+    # u * du/dx
+    du_dx_b = (u[1:-1, 1:-1] - u[1:-1, :-2]) / dx # Backward
+    du_dx_f = (u[1:-1, 2:] - u[1:-1, 1:-1]) / dx  # Forward
+    term_x_u = jnp.where(u_c > 0, u_c * du_dx_b, u_c * du_dx_f)
+    
+    # v * du/dy (Note: v needs to be at u-points, but for collocated grid it's direct)
+    du_dy_b = (u[1:-1, 1:-1] - u[:-2, 1:-1]) / dy # Backward
+    du_dy_f = (u[2:, 1:-1] - u[1:-1, 1:-1]) / dy  # Forward
+    term_y_u = jnp.where(v_c > 0, v_c * du_dy_b, v_c * du_dy_f)
+    
+    adv_u = adv_u.at[1:-1, 1:-1].set(term_x_u + term_y_u)
+
+    # 2. Advection for V-momentum: u*dv/dx + v*dv/dy
+    # u * dv/dx
+    dv_dx_b = (v[1:-1, 1:-1] - v[1:-1, :-2]) / dx
+    dv_dx_f = (v[1:-1, 2:] - v[1:-1, 1:-1]) / dx
+    term_x_v = jnp.where(u_c > 0, u_c * dv_dx_b, u_c * dv_dx_f)
+    
+    # v * dv/dy
+    dv_dy_b = (v[1:-1, 1:-1] - v[:-2, 1:-1]) / dy
+    dv_dy_f = (v[2:, 1:-1] - v[1:-1, 1:-1]) / dy
+    term_y_v = jnp.where(v_c > 0, v_c * dv_dy_b, v_c * dv_dy_f)
+    
+    adv_v = adv_v.at[1:-1, 1:-1].set(term_x_v + term_y_v)
     
     return adv_u, adv_v
 
@@ -72,7 +85,7 @@ def predictor_step_jax(u, v, dt, dx, dy, nu):
     return u_star, v_star
 
 
-@jit(static_argnames=['nit'])
+@partial(jit, static_argnums=(7,))
 def pressure_poisson_jax(p, u_star, v_star, dt, dx, dy, rho, nit=50):
     """
     Solve pressure Poisson equation (JAX version).

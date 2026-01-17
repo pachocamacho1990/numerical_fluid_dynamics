@@ -118,45 +118,70 @@ where $\alpha = \frac{\nu \Delta t}{2}$.
 
 ## 4. Alternating Direction Implicit (ADI) Method
 
-The Helmholtz equation in 2D becomes a large linear system. **ADI** makes this tractable by splitting into two 1D problems.
+The 2D Helmholtz equation $(I - \alpha \nabla^2) u = f$ involves a large sparse matrix. ADI splits this into two 1D problems using **Approximate Factorization**.
 
-### The Douglas-Gunn Scheme
+### Approximate Factorization
 
-For the Helmholtz equation:
-
-$$
-(I - \alpha \nabla^2) u = f
-$$
-
-Split into two half-steps:
-
-**Half-step 1 (x-direction implicit):**
+We approximate the 2D operator as a product of 1D operators:
 
 $$
-\left(I - \alpha \frac{\partial^2}{\partial x^2}\right) u^{*} = f + \alpha \frac{\partial^2 u^n}{\partial y^2}
+(I - \alpha \nabla^2) \approx (I - \alpha \partial_{xx})(I - \alpha \partial_{yy}) = I - \alpha \partial_{xx} - \alpha \partial_{yy} + \alpha^2 \partial_{xxyy}
 $$
 
-**Half-step 2 (y-direction implicit):**
+The error term $\alpha^2 \partial_{xxyy}$ is $O(\Delta t^2)$, consistent with the 2nd-order accuracy of Crank-Nicolson.
+We solve the factorized system:
 
 $$
-\left(I - \alpha \frac{\partial^2}{\partial y^2}\right) u^{n+1} = u^{*} - \alpha \frac{\partial^2 u^n}{\partial y^2}
+(I - \alpha \partial_{xx})(I - \alpha \partial_{yy}) u^{n+1} = f + \alpha^2 \partial_{xxyy} u^n
 $$
 
-### Why ADI is Efficient
+### Implemented Algorithm (Douglas-Gunn Split)
 
-Each 1D problem gives a **tridiagonal system**, solvable in $O(N)$ time using the Thomas algorithm (as opposed to $O(N^2)$ or $O(N^3)$ for full 2D).
+Our code implements this factorization in two sweeps (Total Variable Form):
 
-### Discretized Form
-
-For the x-sweep at row $j$:
+**Step 1: X-Sweep (Implicit X, Explicit Y)**
+Solve for intermediate $u^*$:
 
 $$
--r_x u_{i-1,j}^* + (1 + 2r_x) u_{i,j}^* - r_x u_{i+1,j}^* = \text{RHS}_{i,j}
+(I - \alpha \partial_{xx}) u^* = f + \alpha \partial_{yy} u^n
 $$
 
-where $r_x = \frac{\alpha}{\Delta x^2} = \frac{\nu \Delta t}{2 \Delta x^2}$
+*Physical interpretation:* Advance diffusion fully in X, but keep Y explicit (at $t^n$).
 
-This is a tridiagonal system that can be solved efficiently.
+**Step 2: Y-Sweep (Implicit Y)**
+Solve for $u^{n+1}$:
+
+$$
+(I - \alpha \partial_{yy}) u^{n+1} = u^* - \alpha \partial_{yy} u^n
+$$
+
+*Physical interpretation:* Remove the explicit Y-diffusion added in Step 1, and apply the implicit Y-operator.
+
+Substituting Step 2 into Step 1 recovers the approximate factorization form (plus the splitting error).
+
+### Discretized Tridiagonal Systems
+
+Each step requires solving a tridiagonal system $Ax=b$.
+
+**X-Sweep (Row by Row):**
+For each row $j$:
+
+$$
+-r_x u_{i-1,j}^* + (1 + 2r_x) u_{i,j}^* - r_x u_{i+1,j}^* = \text{RHS}_{x}
+$$
+
+where `RHS_x` includes the explicit y-term $\alpha \partial_{yy} u^n$.
+
+**Y-Sweep (Col by Col):**
+For each col $i$:
+
+$$
+-r_y u_{j-1,i}^{n+1} + (1 + 2r_y) u_{j,i}^{n+1} - r_y u_{j+1,i}^{n+1} = \text{RHS}_{y}
+$$
+
+where `RHS_y` subtracts the explicit y-term $u_{i,j}^* -  \alpha \partial_{yy} u^n$ .
+
+This matches the implementation in `adi_solver.py`.
 
 ---
 

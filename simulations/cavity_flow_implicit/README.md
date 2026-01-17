@@ -39,6 +39,7 @@ The implementation uses the **Chorin-Temam Projection Method**:
 - **Crank-Nicolson:** 2nd-order accurate implicit time stepping for diffusion
 - **ADI (Alternating Direction Implicit):** Efficient solution of 2D Helmholtz equations
 - **Thomas Algorithm:** O(n) tridiagonal solver for ADI sweeps
+- **Upwind Advection:** 1st-order conditional upwind scheme for stable advection in recirculating flow
 
 ## Directory Structure
 
@@ -179,7 +180,10 @@ JAX_PLATFORMS=cpu python simulations/cavity_flow_implicit/cavity_flow_implicit_j
 |--------|----------------|-----------|-------------------------|---------|
 | Implicit | NumPy | ~5.8 | 517s | 1x |
 | Implicit | JAX (CPU) | ~47.7 | 63s | **8.2x** |
-| Implicit | JAX (GPU) | TBD | TBD | **>10x** |
+| Implicit | JAX (GPU) | 17.5 | 57s | 3x |
+
+> [!NOTE]
+> **CPU outperforms Metal GPU** for implicit schemes because the ADI solver uses sequential tridiagonal solves (Thomas algorithm) that don't parallelize well on GPUs.
 
 ### Implementation Details
 - **`thomas_solver_jax.py`**: Tridiagonal solver using `jax.lax.scan`

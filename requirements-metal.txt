@@ -1,0 +1,6 @@
+# JAX Metal GPU environment (pinned versions for Apple Silicon)
+# jax-metal 0.1.1 requires JAX 0.5.0 - do not upgrade without testing
+-r requirements.txt
+jax==0.5.0
+jaxlib==0.5.0
+jax-metal==0.1.1
