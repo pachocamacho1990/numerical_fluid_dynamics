@@ -112,7 +112,7 @@ numerical_fluid_dynamics/
 │       ├── cavity_flow.py    # NumPy implementation
 │       ├── cavity_flow_jax.py # JAX implementation
 │       └── README.md
-│   └── cavity_flow_implicit/  # Implicit scheme (coming soon)
+│   └── cavity_flow_implicit/  # Implicit scheme (NumPy + JAX)
 │       └── README.md
 ├── docs/                     # Mathematical theory
 │   ├── cavity_flow_theory.md      # Explicit scheme theory
