@@ -56,7 +56,7 @@ We validated our **Implicit JAX Solver** against the data for three flow regimes
 
 The plot below compares our simulation's **Vertical Centerline Velocity** $u(0.5, y)$ against the tabulated data points from Ghia et al. (1982).
 
-![Ghia Validation Result](file:///Users/pacho-home-server/numerical_fluid_dynamics/simulations/experiments/results/ghia_benchmark/ghia_validation_full.png)
+![Ghia Validation Result](ghia_validation_full.png)
 
 ### Analysis
 1.  **Re=100 (Blue):** Perfect agreement. This confirms the diffusion terms and pressure projection are correct.
