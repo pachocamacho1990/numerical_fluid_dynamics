@@ -165,17 +165,21 @@ Each step requires solving a tridiagonal system $Ax=b$.
 
 **X-Sweep (Row by Row):**
 For each row $j$:
+
 $$
 -r_x u_{i-1,j}^* + (1 + 2r_x) u_{i,j}^* - r_x u_{i+1,j}^* = \text{RHS}_{x}
 $$
+
 where `RHS_x` includes the explicit y-term $\alpha \partial_{yy} u^n$.
 
 **Y-Sweep (Col by Col):**
 For each col $i$:
+
 $$
 -r_y u_{j-1,i}^{n+1} + (1 + 2r_y) u_{j,i}^{n+1} - r_y u_{j+1,i}^{n+1} = \text{RHS}_{y}
 $$
-where `RHS_y` subtracts the explicit y-term: $u^*_{i,j} - \alpha \partial_{yy} u^n$.
+
+where `RHS_y` subtracts the explicit y-term $u_{i,j}^* -  \alpha \partial_{yy} u^n$ .
 
 This matches the implementation in `adi_solver.py`.
 
