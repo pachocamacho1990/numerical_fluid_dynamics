@@ -37,6 +37,18 @@ Unconditionally stable implicit scheme using Fractional Step (Projection) method
   - Allows 10-100× larger timesteps
   - Stable at high Reynolds numbers
 
+### Backward-Facing Step Flow ✅
+2D flow over a step causing separation and recirculation (Armaly benchmark).
+
+- **Location**: [`simulations/backward_facing_step/`](simulations/backward_facing_step/)
+- **Documentation**: [Theory](docs/backward_facing_step_theory.md) | [Usage](simulations/backward_facing_step/README.md)
+- **Features**:
+  - Armaly et al. (1983) geometry (ER=1.94)
+  - Conditional upwind advection for recirculation stability
+  - Automated reattachment length validation
+  - JAX acceleration (3.2x speedup)
+
+
 ## Quick Start
 
 ### Installation

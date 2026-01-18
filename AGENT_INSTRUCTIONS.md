@@ -76,3 +76,15 @@ We use GitHub Flavored Markdown. GitHub's MathJax renderer is strict. To ensure 
 *   Use `--benchmark` flag for minimal output
 *   Use `--output-dir` to organize different experiment types
 *   Generate comparison plots in `plots/` directory
+
+## 6. Advanced Numerical Methods
+
+*   **Implicit Solvers**: Use **Masked ADI** (Alternating Direction Implicit) for handling irregular geometries (like steps) on Cartesian grids. This avoids the need for unstructured meshes while maintaining unconditional stability for diffusion.
+    *   **Masking**: Use binary masks ($1=$ fluid, $0=$ solid) and modify matrix coefficients to enforce Dirichlet BCs in solid regions.
+    *   **Pressure BCs**: Use ghost points to strictly enforce Neumann boundary conditions at re-entrant corners.
+*   **High Reynolds Number**:
+    *   Validate flow regimes: Steady ($Re < 400$) vs. Unsteady/Vortex Shedding ($Re > 1200$).
+    *   For unsteady flows, save simulation history (`.npz`) separate from plotting logic.
+*   **Animations**:
+    *   Use `matplotlib.animation` with `Pillow` (GIF) or `FFmpeg` (MP4).
+    *   For long simulations, save history to disk first, then generate animation from the saved file to avoid memory issues and allow re-plotting.
