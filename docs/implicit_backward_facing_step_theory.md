@@ -1,104 +1,128 @@
-# Implicit Backward-Facing Step Flow - Masked ADI Method
+# Theory: Implicit Backward-Facing Step Flow
 
-This document details the **Implicit Masked ADI** numerical scheme used for the backward-facing step simulation. This method enables stable simulations at higher Reynolds numbers on a simple Cartesian grid by handling the step geometry through mathematical masking.
+This document provides a comprehensive theoretical background for the implicit (Masked ADI) solution of the backward-facing step flow. It covers the flow physics at various Reynolds numbers, the mathematical formulation of the Masked ADI method, and the rigorous implementation of boundary conditions.
 
-## 1. Overview
+## 1. Flow Physics & Regimes
 
-The solver uses a **Fractional Step (Projection) Method** combined with an **Alternating Direction Implicit (ADI)** scheme for the diffusion terms. The key innovation is the use of a **Masked ADI** solver to handle the non-rectangular domain (step geometry) without requiring unstructured meshes or coordinate transformations.
+The backward-facing step (BFS) is a canonical problem for studying flow separation and reattachment. The geometry induces a shear layer separation at the step edge ($x=0, y=h$), which forms a primary recirculation zone (vortex) downstream.
 
-### Key Features
-*   **Time Integration**: Crank-Nicolson for diffusion (2nd order, Unconditionally Stable), Explicit for advection (1st order upwind).
-*   **Spatial Discretization**: Finite Difference on a Cartesian grid.
-*   **Geometry Handling**: "Masked" approach where solid regions are mathematically solved as identity equations ($u=0$).
+### 1.1 Reynolds Number Definition
+We use the standard Armaly et al. definition based on the step height $h$ and the average inlet velocity $\bar{U}_{inlet}$:
+$$ Re_h = \frac{\bar{U}_{inlet} h}{\nu} $$
+*Note: Our code input uses $U_{max}$. For a parabolic profile, $\bar{U} = \frac{2}{3} U_{max}$.*
 
----
+### 1.2 Flow Regimes
+As $Re$ increases, the flow undergoes several distinct transitions:
 
-## 2. Masked ADI Solver
+1.  **Viscous Laminar Flow ($Re < 100$)**:
+    *   Single primary recirculation zone attached to the step.
+    *   Flow is steady and 2D.
+    *   Reattachment length $X_1$ grows linearly with $Re$.
 
-Standard ADI solvers typically require rectangular domains $(I - \alpha \nabla^2)u = f$. For the backward-facing step, the domain is irregular. We modify the ADI tridiagonal systems to enforce no-slip conditions in the solid regions.
+2.  **Transitional Laminar Flow ($100 < Re < 400$)**:
+    *   Separation on the upper wall (roof eddy) may appear around $Re \approx 400$.
+    *   Flow remains steady and 2D.
 
-### The Concept
-We introduce a binary mask $M(x,y)$:
-*   $M=1$: Fluid Region
-*   $M=0$: Solid Region (Step)
+3.  **Transitional Multi-Vortex Flow ($400 < Re < 1200$)**:
+    *   **Primary Zone ($X_1$)**: Attached to the step bottom wall.
+    *   **Secondary Zone ($X_2$)**: Forms on the top wall (roof eddy).
+    *   **Tertiary Zone ($X_3$)**: May form on the bottom wall further downstream.
+    *   *Note: In 2D simulations, these eddies are stable. In 3D experiments (Armaly), 3D effects reduce the size of $X_1$ significantly for $Re > 400$. Our 2D simulation follows the 2D solution (Ghia et al.), which actually predicts longer reattachment lengths than experiments in this regime.*
 
-### Modified Tridiagonal Systems
-In the ADI sweeps (both X and Y directions), we build tridiagonal systems $A \phi = b$. The coefficients are modified based on the mask:
-
-#### Fluid Points ($M=1$)
-Standard diffusion discretization:
-$$
--r \phi_{i-1} + (1 + 2r) \phi_{i} - r \phi_{i+1} = \text{RHS}_{fluid}
-$$
-
-#### Solid Points ($M=0$)
-We enforce the identity equation $\phi = 0$:
-$$
-\phi_i = 0 \implies 0 \cdot \phi_{i-1} + 1 \cdot \phi_{i} + 0 \cdot \phi_{i+1} = 0
-$$
-
-By adjusting the matrix coefficients ($a=0, b=1, c=0$) and RHS ($d=0$) for masked rows/columns, the ADI solver naturally computes zero velocity in the step region while solving the diffusion equation in the fluid region. This avoids the complexity of block-structured grids.
+4.  **Unsteady/Turbulent Flow ($Re > 1200$)**:
+    *   Kelvin-Helmholtz instabilities in the shear layer lead to vortex shedding.
+    *   The flow becomes unsteady and eventually fully turbulent.
+    *   At **$Re=5000$**, the flow is dominated by strong vortex shedding and complex interactions between the shear layer and the walls. The "steady" solution is no longer physically realizable; we observe a time-averaged mean flow with fluctuating components.
 
 ---
 
-## 3. Pressure Poisson with Step BCs
+## 2. Mathematical Formulation: Masked ADI
 
-The most critical part of the fractional step method is the Pressure Poisson Equation (PPE):
+To solve the Navier-Stokes equations on the irregular step domain $\Omega$ using a simple Cartesian grid, we employ a **Masked Alternating Direction Implicit (ADI)** method.
+
+### 2.1 The Domain & Mask
+We define a rectangular computational domain $\Omega_{comp} = [0, L] \times [0, H]$. The physical domain $\Omega_{fluid}$ is a subset. We define a mask function $M(i,j)$:
+
 $$
-\nabla^2 p = \frac{\rho}{\Delta t} \nabla \cdot \mathbf{u}^*
+M(i,j) = \begin{cases} 
+1 & \text{if } (x_i, y_j) \in \Omega_{fluid} \\
+0 & \text{if } (x_i, y_j) \in \Omega_{solid} \text{ (The Step)}
+\end{cases}
 $$
 
-### Boundary Conditions
-Proper boundary conditions are essential for mass conservation, especially at the re-entrant corner of the step.
+### 2.2 The Helmholtz Problem
+The implicit diffusion step involves solving a Helmholtz equation for velocity component $\phi$ (where $\phi$ is $u$ or $v$):
+$$
+(I - \alpha \nabla^2) \phi = f
+$$
+where $\alpha = \frac{\nu \Delta t}{2}$.
 
-#### 1. Global Boundaries
-*   **Inlet ($x=-L_{in}$)**: $\partial p / \partial x = 0$
-*   **Outlet ($x=L_{out}$)**: $p = 0$ (Dirichlet)
-*   **Top/Bottom Walls**: $\partial p / \partial y = 0$
+### 2.3 Factorization and Masking
+The ADI method factors this into X and Y sweeps.
 
-#### 2. Step Boundaries (Re-entrant Corner)
-The step introduces internal boundaries where we must apply Neumann conditions ($\partial p / \partial n = 0$).
+#### X-Sweep (Row $j$)
+We solve for intermediate $\phi^*$:
+$$ (I - \alpha \partial_{xx}) \phi^* = \text{RHS} $$
 
-*   **Step Top Surface** ($y=h, x<0$):
-    *   Condition: $\partial p / \partial y = 0$
-    *   Implementation: $p_{solid}(x, h-\Delta y) = p_{fluid}(x, h)$ (Ghost point copy)
-    
-*   **Step Vertical Face** ($x=0, y<h$):
-    *   Condition: $\partial p / \partial x = 0$
-    *   Implementation: $p_{solid}(-\Delta x, y) = p_{fluid}(0, y)$ (Ghost point copy)
+For a grid row $j$, this leads to a tridiagonal system $A_x \mathbf{\phi}^*_j = \mathbf{b}$. We modify the matrix rows based on the mask $M(i,j)$:
 
-These conditions ensure that the pressure gradient does not drive flux across the solid walls.
+*   **If $M(i,j) = 1$ (Fluid)**:
+    Standard central difference stencil:
+    $$ -\frac{\alpha}{\Delta x^2} \phi^*_{i-1} + \left(1 + \frac{2\alpha}{\Delta x^2}\right) \phi^*_i - \frac{\alpha}{\Delta x^2} \phi^*_{i+1} = b_i $$
+
+*   **If $M(i,j) = 0$ (Solid)**:
+    Identity equation (Dirichlet $u=0$):
+    $$ 0 \cdot \phi^*_{i-1} + 1 \cdot \phi^*_i + 0 \cdot \phi^*_{i+1} = 0 $$
+    *(We set $b_i = 0$)*.
+
+This ensures that in the solid region, the velocity is forced to zero, effectively applying the no-slip condition at the staircase boundary of the step.
+
+#### Y-Sweep (Column $i$)
+Similarly, we solve $(I - \alpha \partial_{yy}) \phi^{n+1} = \phi^*$.
+For solid points $M(i,j)=0$, we again enforce $1 \cdot \phi^{n+1}_j = 0$.
 
 ---
 
-## 4. Algorithm Steps
+## 3. Pressure Boundary Conditions at the Corner
 
-1.  **Advection (Explicit)**:
-    Compute advective terms using explicit upwinding on the current velocity field $\mathbf{u}^n$.
-    $$
-    \mathbf{A}^n = -(\mathbf{u}^n \cdot \nabla) \mathbf{u}^n
-    $$
+The most challenging aspect of the step geometry on a Cartesian grid is the "re-entract corner" ($x=0, y=h$).
 
-2.  **Predictor (Masked ADI)**:
-    Solve the Helmholtz equation for intermediate velocity $\mathbf{u}^*$:
-    $$
-    \left(I - \frac{\nu \Delta t}{2} \nabla^2\right) \mathbf{u}^* = \mathbf{u}^n + \Delta t \mathbf{A}^n + \frac{\nu \Delta t}{2} \nabla^2 \mathbf{u}^n
-    $$
-    *Solved using Masked ADI to enforce $\mathbf{u}^*=0$ in the step.*
+### 3.1 The Physical Condition
+For high Re incompressible flow, the pressure boundary condition at a solid wall comes from projecting the momentum equation onto the wall normal $\mathbf{n}$:
+$$ \frac{\partial p}{\partial n} = \mathbf{n} \cdot (\nu \nabla^2 \mathbf{u} - \frac{\partial \mathbf{u}}{\partial t} - (\mathbf{u} \cdot \nabla)\mathbf{u}) $$
+For a stationary no-slip wall ($Re \to \infty$), this simplifies to $\frac{\partial p}{\partial n} \approx 0$.
 
-3.  **Pressure Solve**:
-    Solve $\nabla^2 p = \frac{\rho}{\Delta t} \nabla \cdot \mathbf{u}^*$ with the boundary conditions described above.
-    *Implemented using an iterative solver (Jacobi/SOR) that respects the step geometry.*
+### 3.2 Discrete Implementation (Ghost Points)
+Our Poisson solver uses a 5-point stencil. Near boundaries, this stencil reaches outside the fluid domain.
 
-4.  **Corrector**:
-    Update velocity to be divergence-free:
-    $$
-    \mathbf{u}^{n+1} = \mathbf{u}^* - \frac{\Delta t}{\rho} \nabla p
-    $$
-    *Re-apply mask to ensure $\mathbf{u}^{n+1}=0$ in solid regions.*
+#### Step Top Surface ($y=h, x<0$)
+The fluid nodes are at $j_{step}$. The solid nodes are at $j_{step}-1$.
+To correct the stencil at $j_{step}$, we need a value for $p_{j_{step}-1}$.
+Condition $\frac{\partial p}{\partial y} = 0 \implies p_{j_{step}-1} = p_{j_{step}}$.
+
+In the code, we explicitly copy the pressure values from the first fluid layer into the last solid layer (the "ghost" layer) before the Poisson iteration (or during it):
+```python
+# Copy row j_step to j_step-1
+p[j_step-1, :i_step] = p[j_step, :i_step] 
+```
+
+#### Step Vertical Face ($x=0, y<h$)
+The fluid nodes are at $i_{step}$. The solid nodes are at $i_{step}-1$.
+Condition $\frac{\partial p}{\partial x} = 0 \implies p_{i_{step}-1} = p_{i_{step}}$.
+
+```python
+# Copy col i_step to i_step-1
+p[:j_step, i_step-1] = p[:j_step, i_step]
+```
+
+### 3.3 Why This Matters
+Failure to implement these corner BCs correctly results in "pressure leakage" into the step, causing non-physical gradients that can destabilize the simulation at high Reynolds numbers (like $Re=5000$). Our rigorous implementation ensures mass is strictly conserved within the fluid domain.
 
 ---
 
-## 5. References
-*   **Armaly, B. F., et al. (1983).** "Experimental and theoretical investigation of backward-facing step flow." *Journal of Fluid Mechanics*, 127, 473-496.
-*   **Patankar, S. V. (1980).** *Numerical Heat Transfer and Fluid Flow*. (Concept of "Blocked-off regions").
+## 4. Simulation Strategy for High Re
+
+For $Re=5000$:
+1.  **Resolution**: The boundary layers become very thin ($\delta \propto Re^{-1/2}$). A fine grid ($801 \times 301$) allows capturing these gradients.
+2.  **Time Step**: Although the implicit diffusion allows large $\Delta t$, the explicit advection (and the physics of vortex shedding) limits $\Delta t$. We need $CFL < 1$ to accurately resolve the advection of vortices.
+3.  **Long Integration**: At $Re=5000$, the flow never reaches a steady state. We must integrate for a long time ($T=400$ or more) to observe the quasi-periodic shedding cycle. 40,000 steps at $dt=0.005$ gives $T=200$, sufficient to see the dynamics.

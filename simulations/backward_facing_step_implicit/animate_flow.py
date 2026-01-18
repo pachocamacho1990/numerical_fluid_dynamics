@@ -29,12 +29,12 @@ from geometry import setup_geometry, get_inlet_profile, calculate_nu_from_reynol
 
 def run_simulation_and_save():
     # Parameters
-    re = 800.0
-    nx = 401
-    ny = 101
-    nt = 40000
-    dt = 0.005
-    save_interval = 100  # Save every 100 steps
+    re = 5000.0
+    nx = 801
+    ny = 301
+    nt = 160000
+    dt = 0.0025
+    save_interval = 50  # Save every 50 steps
     
     output_dir = os.path.join(current_dir, "outputs")
     os.makedirs(output_dir, exist_ok=True)
