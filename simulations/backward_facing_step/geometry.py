@@ -18,8 +18,10 @@ import numpy as np
 
 # Armaly benchmark geometry constants
 H_TOTAL = 1.0           # Total channel height (normalized)
-H_STEP = 0.51           # Step height (h/H = 0.51 per Armaly)
-H_INLET = H_TOTAL - H_STEP  # Inlet channel height = 0.49
+# Target ER = 1.94. ER = H / (H - h).
+# h = H * (1 - 1/ER) = 1.0 * (1 - 1/1.94) = 0.484536...
+H_STEP = 0.484536       # Step height for ER=1.94
+H_INLET = H_TOTAL - H_STEP
 L_IN_FACTOR = 5.0       # L_in = 5h (inlet development length)
 L_OUT_FACTOR = 30.0     # L_out = 30h (outlet length for reattachment)
 
