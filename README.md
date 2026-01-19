@@ -48,6 +48,17 @@ Unconditionally stable implicit scheme using Fractional Step (Projection) method
   - Automated reattachment length validation
   - JAX acceleration (3.2x speedup)
 
+### Backward-Facing Step Flow (3D) ✅
+Full 3D implementation of the Armaly benchmark, capturing sidewall effects and spanwise variations.
+
+- **Location**: [`simulations/backward_facing_step_3d/`](simulations/backward_facing_step_3d/)
+- **Documentation**: [Theory](docs/backward_facing_step_3d_theory.md) | [Visualization](simulations/backward_facing_step_3d/visualization_setup.md)
+- **Features**:
+  - 3D ADI (Alternating Direction Implicit) method
+  - Massively parallel tridiagonal solves via JAX
+  - Advanced 3D Isosurface visualization
+
+
 
 ## Quick Start
 

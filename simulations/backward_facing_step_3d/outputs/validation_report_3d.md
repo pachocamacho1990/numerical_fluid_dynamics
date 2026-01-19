@@ -42,3 +42,10 @@ The 3D solver successfully captures the qualitative 3D physics:
 1.  **Stable simulation** of full 3D Navier-Stokes equations on fine grids (~0.5M cells).
 2.  **Physical boundary layers** on sidewalls correctly retarding the flow.
 3.  **Complex 3D structure**, where the reattachment length varies dramatically across the span.
+
+## 6. Next Steps
+
+While the current validation at Re=400 confirms the solver's qualitative correctness and ability to capture 3D effects, the following steps are planned:
+
+1.  **High Reynolds Validation (Re=800)**: Run simulations on finer grids to capture the extended reattachment length expected at higher Re.
+2.  **Advanced Visualization**: Generate animated Q-criterion isosurfaces (in progress).

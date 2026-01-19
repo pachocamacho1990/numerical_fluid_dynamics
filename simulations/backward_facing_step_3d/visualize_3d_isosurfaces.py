@@ -146,6 +146,10 @@ def visualize(data, output_dir, args, h_step=0.4845):
         pl.close()
         print(f"Saved animation: {outpath}")
     else:
+        pl.camera_position = [(10.178924684666828, 1.975460761217919, -1.0153150187937405),
+                              (6.056700229644775, 0.5, 1.9381439685821533),
+                              (-0.16131218927241073, 0.9542959573764408, 0.25159014950336195)
+                            ]
         outpath = os.path.join(output_dir, f"{save_name}.png")
         pl.screenshot(outpath, transparent_background=False)
         pl.close()

@@ -49,7 +49,10 @@ $PYTHON_CMD -m venv $VENV_DIR
 
 echo "Installing dependencies..."
 $VENV_DIR/bin/pip install --upgrade pip
-$VENV_DIR/bin/pip install pyvista matplotlib numpy imageio
+$VENV_DIR/bin/pip install pyvista matplotlib numpy imageio ipykernel ipywidgets
+
+echo "Registering Jupyter Kernel..."
+$VENV_DIR/bin/python -m ipykernel install --user --name=venv_vis --display-name "Python (PyVista 3D)"
 
 echo ""
 echo "=========================================================="
@@ -57,4 +60,7 @@ echo "Setup Complete!"
 echo "=========================================================="
 echo "To run the visualization:"
 echo "  $VENV_DIR/bin/python simulations/backward_facing_step_3d/visualize_3d_isosurfaces.py --interactive"
+echo ""
+echo "To use in Jupyter Lab:"
+echo "  Select kernel: 'Python (PyVista 3D)'"
 echo ""

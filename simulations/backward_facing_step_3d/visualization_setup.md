@@ -37,6 +37,14 @@ venv_vis/bin/pip install pyvista matplotlib numpy imageio
 ---
 
 ### 3. Running Visualization
+
+**Method A: Jupyter Notebook (Standard)**
+1.  Open Jupyter Lab.
+2.  Create a new notebook.
+3.  Select Kernel: **"Python (PyVista 3D)"**.
+4.  You can now use `import pyvista` and visualize directly in the notebook.
+
+**Method B: Command Line Scripts**
 Use the dedicated script `visualize_3d_isosurfaces.py` with the new environment:
 
 ```bash
