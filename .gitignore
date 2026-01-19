@@ -38,3 +38,4 @@ simulations/cavity_flow/outputs/
 
 # Specific venvs
 venv_metal/
+venv_vis/

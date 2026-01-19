@@ -23,7 +23,7 @@ Comparison of reattachment length ($X_r/h$) with Armaly et al. (1983) experiment
 | **Coarse** ($101 \times 26 \times 26$) | 68,276 | 9.35 | 5.11 | 5,000 | 1.4 min |
 | **Fine** ($201 \times 51 \times 51$) | 522,801 | 11.98 | 4.95 | 10,000 | 22 min |
 
-![Validation Plot](./validation_3d_fine.png)
+![Validation Plot](validation_3d.png)
 
 ## 4. Analysis
 
