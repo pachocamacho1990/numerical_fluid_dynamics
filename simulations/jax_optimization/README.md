@@ -13,22 +13,24 @@ This folder contains experiments for optimizing JAX CPU performance in numerical
 
 ## Optimizations Applied
 
-1. **`donate_argnums`** - Buffer reuse to avoid memory allocation overhead
-2. **`lax.scan` main loop** - Compile entire simulation as single XLA kernel  
-3. **`jax_enable_x64`** - Consistent 64-bit precision
+1. **Red-Black SOR Solver** - Replaced Jacobi solver (50 iterations) with Red-Black Successive Over-Relaxation ($\omega=1.9$, 15 iterations). This provided the largest speedup by reducing the pressure solve cost by ~3x while maintaining stability.
+2. **`lax.scan` Main Loop** - Compiled the entire transient simulation loop into a single XLA kernel, eliminating Python dispatch overhead.
+3. **`donate_argnums`** - Buffer reuse to minimize memory allocation (applied to Python loop version).
+4. **`jax_enable_x64`** - Consistent 64-bit precision.
 
 ## Benchmark Results
 
-### Grid Scaling (2000 steps each)
+### Final Performance (Grid 201x51, 20,000 steps)
 
-| Grid | Cells | lax.scan | Python Loop | Speedup |
-|------|-------|----------|-------------|---------|
-| 101×26 | 2.6K | 3104 steps/s | 2680 steps/s | **1.16x** |
-| 201×51 | 10K | 845 steps/s | 816 steps/s | **1.04x** |
-| 401×101 | 40K | 233 steps/s | 227 steps/s | **1.03x** |
-| 801×201 | 161K | 84 steps/s | 81 steps/s | **1.04x** |
+| Configuration | Steps/sec | Speedup | Max U (Final) |
+|---------------|-----------|---------|---------------|
+| **Baseline (Jacobi-50)** | 857 | 1.00x | 1.4999 |
+| **Optimized (SOR-15 + scan)** | **1324** | **1.54x** | **1.4999** |
 
-**Finding:** `lax.scan` shows best gains at small grids (16%) where Python loop overhead is significant. At larger grids, gains converge to 3-4% as compute dominates.
+**Key Findings:**
+- The **Red-Black SOR solver** significantly outperforms the baseline Jacobi solver. By using optimal relaxation ($\omega=1.9$), we achieve faster convergence, allowing us to reduce iterations from 50 to 15 without reduced accuracy.
+- **XLA compilation** (`lax.scan`) provides additional overhead reduction, crucial for smaller grids.
+- The combination yields a **54% overall speedup** for production-length simulations with verified long-term stability.
 
 ## Usage
 
