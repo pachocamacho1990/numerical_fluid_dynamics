@@ -21,7 +21,8 @@ import jax
 jax.config.update("jax_enable_x64", True)  # Consistent double precision
 
 import jax.numpy as jnp
-from jax import jit, lax
+from jax import jit, grad, lax
+from multigrid_poisson import solve_multigrid
 
 from geometry import (
     setup_geometry,
@@ -83,7 +84,7 @@ def solve_pressure_jax(p, dx, dy, b, nit):
 
 # OPTIMIZATION 1: donate_argnums for buffer reuse (Python loop only)
 # NOTE: donate_argnums cannot be used inside lax.scan - use time_step_jax_inner instead
-@partial(jit, static_argnums=(8, 11, 12), donate_argnums=(0, 1, 2))
+@partial(jit, static_argnums=(8, 11, 12))
 def time_step_jax(u, v, p, dt, dx, dy, rho, nu, nit, mask, u_inlet, j_step, i_step):
     """Time step with buffer donation (for Python loop)."""
     return _time_step_impl(u, v, p, dt, dx, dy, rho, nu, nit, mask, u_inlet, j_step, i_step)
@@ -92,7 +93,9 @@ def time_step_jax(u, v, p, dt, dx, dy, rho, nu, nit, mask, u_inlet, j_step, i_st
 # Version WITHOUT donate_argnums for lax.scan (scan manages memory internally)
 @partial(jit, static_argnums=(8, 11, 12))
 def time_step_jax_inner(u, v, p, dt, dx, dy, rho, nu, nit, mask, u_inlet, j_step, i_step):
-    """Time step for lax.scan (no buffer donation)."""
+    """
+    Inner time step function (pure), implementation.
+    """
     return _time_step_impl(u, v, p, dt, dx, dy, rho, nu, nit, mask, u_inlet, j_step, i_step)
 
 
@@ -105,8 +108,10 @@ def _time_step_impl(u, v, p, dt, dx, dy, rho, nu, nit, mask, u_inlet, j_step, i_
     # 1. Build RHS for pressure Poisson
     b = build_up_b_jax(rho, dt, u, v, dx, dy, mask)
     
-    # 2. Solve pressure Poisson
-    p = solve_pressure_jax(p, dx, dy, b, nit)
+    # Solve pressure (Multigrid)
+    # Note: solve_multigrid expects (p, b, dx, dy, mask, n_cycles)
+    # We use n_cycles=3 (approx equal to 50 jacobi iters in quality, but faster)
+    p = solve_multigrid(p, b, dx, dy, mask, n_cycles=3)
     
     # Advection terms with conditional upwinding
     u_c = un[1:-1, 1:-1]
