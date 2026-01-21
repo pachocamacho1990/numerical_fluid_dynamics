@@ -295,7 +295,18 @@ Key observations:
 - Grid: $(N_x, N_y, N_z)$ - typical $(101, 26, 26)$ for testing
 - The 3D simulation is $\sim 26\times$ more expensive than 2D (one factor of $N_z$)
 - JAX `vmap` enables efficient parallelization of tridiagonal solves
-
+ 
+### 8.4 High-Reynolds Number Physics (Re=2000)
+ 
+ At $Re_h = 2000$, the flow transitions from laminar steady state to **unsteady turbulent** behavior.
+ 
+ - **Numerical Approach**: The simulation acts as an **Implicit Large Eddy Simulation (ILES)** or under-resolved DNS. The numerical dissipation of the discrete operators stabilizes the solution without an explicit subgrid-scale turbulence model.
+ - **Unsteady Dynamics**: Unlike the steady low-Re cases, the flow at Re=2000 does not converge to a static solution ($d/dt = 0$). Instead, it exhibits:
+     - Kelvin-Helmholtz instabilities in the shear layer.
+     - Vortex shedding and breakup downstream of the step.
+     - Fluctuating reattachment points.
+ - **Validation Criterion**: For unsteady flow, statistical averages (mean velocity, Reynolds stresses) should be compared with experiments, rather than instantaneous snapshots.
+ 
 ---
 
 ## 9. References
