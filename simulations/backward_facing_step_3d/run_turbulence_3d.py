@@ -51,7 +51,7 @@ def run_simulation(args):
     # -------------------------------------------------------------------------
     # 1. Setup
     # -------------------------------------------------------------------------
-    output_dir = "simulations/backward_facing_step_3d/outputs_turbulence"
+    output_dir = args.save_dir
     os.makedirs(output_dir, exist_ok=True)
     
     # Geometry
@@ -192,6 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("--nit", type=int, default=30) # Pressure iters
     parser.add_argument("--checkpoint_freq", type=int, default=5000)
     parser.add_argument("--force_restart", action="store_true")
+    parser.add_argument("--save_dir", default="simulations/backward_facing_step_3d/outputs_turbulence")
     
     args = parser.parse_args()
     

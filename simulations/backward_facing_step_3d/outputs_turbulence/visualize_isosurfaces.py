@@ -102,7 +102,7 @@ def visualize(data, output_dir, args, h_step=0.4845):
     
     # Setup Plotter
     off_screen = not args.interactive
-    pl = pv.Plotter(off_screen=off_screen)
+    pl = pv.Plotter(off_screen=off_screen, window_size=[2000, 1000])
     pl.set_background('white')
     
     # Add Step Geometry
@@ -111,6 +111,11 @@ def visualize(data, output_dir, args, h_step=0.4845):
     pl.add_mesh(step_box, color='lightgrey', opacity=1.0, show_edges=False)
     pl.add_mesh(grid.outline(), color="black")
     
+    # Compute Velocity Magnitude
+    grid.point_data["Mag U"] = np.sqrt(grid.point_data['velocity'][:,0]**2 + 
+                                       grid.point_data['velocity'][:,1]**2 + 
+                                       grid.point_data['velocity'][:,2]**2)
+
     if args.q_criterion:
         # Vortex Detection
         grid = compute_q_criterion(grid)
@@ -123,10 +128,12 @@ def visualize(data, output_dir, args, h_step=0.4845):
         print(f"Generating Q={iso_val:.4f} isosurface (Max Q={q_max:.4f})...")
         isosurf = grid.contour(isosurfaces=[iso_val], scalars='Q')
         
-        pl.add_mesh(isosurf, color='orange', opacity=0.8, 
+        pl.add_mesh(isosurf, scalars="Mag U", cmap="turbo", opacity=0.8, 
                     smooth_shading=True, show_edges=False,
-                    label=f'Q-Criterion (Vortices)')
-        save_name = "isosurface_Q"
+                    label=f'Q-Criterion (Colored by |U|)')
+        # Add a scalar bar
+        pl.add_scalar_bar("Velocity Magnitude", vertical=True)
+        save_name = "isosurface_Q_colored"
     else:
         # Recirculation Bubble (u=0)
         print("Generating u=0 isosurface...")
