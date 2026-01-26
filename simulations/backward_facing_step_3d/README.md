@@ -46,3 +46,21 @@ Detailed mathematical derivation is available in [`docs/backward_facing_step_3d_
 - `thomas_solver_jax.py`: Tridiagonal solver utility
 - `validate_3d.py`: Validation script and plotting
 - `visualize_3d_isosurfaces.py`: Advanced PyVista visualization
+
+## High-Resolution Turbulent Simulation (Re=2000)
+A high-fidelity simulation matches the same geometry but targets a turbulent regime:
+- **Re**: 2000
+- **Grid**: 451 x 114 x 114 (Fine resolution)
+- **Steps**: 120,000 (Time approx 20-24 hours)
+
+### Running
+```bash
+# Run fine turbulence simulation
+venv/bin/python simulations/backward_facing_step_3d/run_turbulence_3d.py --re 2000 --nx 451 --ny 114 --nz 114 --nt 120000 --save_dir simulations/backward_facing_step_3d/outputs_turbulence_fine
+```
+
+### Results
+Pre-computed visualizations for this case are available in `simulations/backward_facing_step_3d/outputs_turbulence_fine/`.
+- `combined_view.png`: Overview of flow field
+- `streamlines_3d.png`: 3D Streamlines with Q-criterion
+- `isosurface_Q_colored.png`: Detailed vortex structures
