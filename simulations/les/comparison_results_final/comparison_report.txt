@@ -2,7 +2,7 @@ DNS vs LES Comparison Report
 ======================================================================
 
 DNS File: simulations/backward_facing_step_3d/outputs_turbulence/checkpoint_120000.npz
-LES File: simulations/les/outputs_dns_comparison_final/checkpoint_120000.npz
+LES File: simulations/les/outputs_dns_comparison_final_rerun/checkpoint_120000.npz
 
 Grid Resolution:
   DNS: (76, 76, 301) = 301×76×76 = 1.74M cells
