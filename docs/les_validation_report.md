@@ -15,6 +15,9 @@ This report documents the comprehensive validation of the Large Eddy Simulation 
 
 **Overall Assessment**: ✓ **VALIDATED** - Core physics components are functioning correctly. Ready for production use.
 
+> [!NOTE]
+> For a detailed quantitative validation against Direct Numerical Simulation (DNS) at Re=2000, please refer to the [DNS-LES Comparison Report](dns_les_comparison_report.md).
+
 ---
 
 ## 1. Physics Component Verification
