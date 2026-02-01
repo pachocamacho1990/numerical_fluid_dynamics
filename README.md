@@ -58,6 +58,17 @@ Full 3D implementation of the Armaly benchmark, capturing sidewall effects and s
   - Massively parallel tridiagonal solves via JAX
   - Advanced 3D Isosurface visualization
 
+### Large Eddy Simulation (LES) ✅
+3D LES implementation using Smagorinsky SGS model for high-Reynolds number flows.
+
+- **Location**: [`simulations/les/`](simulations/les/)
+- **Documentation**: [Validation Report](docs/les_validation_report.md) | [DNS Comparison](docs/dns_les_comparison_report.md)
+- **Features**:
+  - Smagorinsky Subgrid-Scale model
+  - Van Driest wall damping
+  - Spatially varying viscosity ADI solver
+  - **Validated** against DNS at Re=2000 (0.06% error)
+
 
 
 ## Quick Start
