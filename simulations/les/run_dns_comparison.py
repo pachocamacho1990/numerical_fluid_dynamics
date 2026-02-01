@@ -10,6 +10,9 @@ Matches the DNS turbulent simulation parameters:
 Allows grid resolution variation to study LES coarsening effects.
 """
 
+import os
+os.environ['JAX_PLATFORM_NAME'] = 'cpu'
+
 import jax
 import jax.numpy as jnp
 from jax import jit, lax
