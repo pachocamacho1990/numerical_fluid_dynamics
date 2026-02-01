@@ -431,8 +431,21 @@ def time_step_3d_les(u, v, w, p, dt, dx, dy, dz, rho, nu, nit, mask, u_inlet, ge
     u_new *= mask; v_new *= mask; w_new *= mask
     
     # BCs
+    # Inlet
     u_new = u_new.at[:, j_step:, 0].set(u_inlet)
-    u_new = u_new.at[:, :, -1].set(u_new[:, :, -2]) # Outlet
+    v_new = v_new.at[:, j_step:, 0].set(0.0)
+    w_new = w_new.at[:, j_step:, 0].set(0.0)
+
+    # Top/Bottom walls (No-slip)
+    u_new = u_new.at[:, -1, :].set(0.0); v_new = v_new.at[:, -1, :].set(0.0); w_new = w_new.at[:, -1, :].set(0.0)
+    u_new = u_new.at[:, 0, :].set(0.0); v_new = v_new.at[:, 0, :].set(0.0); w_new = w_new.at[:, 0, :].set(0.0)
+    
+    # Sidewalls (No-slip)
+    u_new = u_new.at[0, :, :].set(0.0); v_new = v_new.at[0, :, :].set(0.0); w_new = w_new.at[0, :, :].set(0.0)
+    u_new = u_new.at[-1, :, :].set(0.0); v_new = v_new.at[-1, :, :].set(0.0); w_new = w_new.at[-1, :, :].set(0.0)
+
+    # Outlet (Neumann)
+    u_new = u_new.at[:, :, -1].set(u_new[:, :, -2])
     v_new = v_new.at[:, :, -1].set(v_new[:, :, -2])
     w_new = w_new.at[:, :, -1].set(w_new[:, :, -2])
     
