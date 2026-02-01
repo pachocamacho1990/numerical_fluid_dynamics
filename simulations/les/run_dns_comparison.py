@@ -21,8 +21,8 @@ import argparse
 import glob
 from functools import partial
 
-# Enable F64 for consistency with DNS
-jax.config.update("jax_enable_x64", True)
+# Enable F64 for consistency with DNS (disabled for Metal backend)
+# jax.config.update("jax_enable_x64", True)
 
 sys.path.append(os.getcwd())
 
