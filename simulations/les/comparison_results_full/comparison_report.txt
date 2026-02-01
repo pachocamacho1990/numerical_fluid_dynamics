@@ -1,0 +1,12 @@
+DNS vs LES Comparison Report
+======================================================================
+
+DNS File: simulations/backward_facing_step_3d/outputs_turbulence/checkpoint_120000.npz
+LES File: simulations/les/outputs_dns_comparison_coarse/checkpoint_120000.npz
+
+DNS Grid: (76, 76, 301)
+LES Grid: (32, 32, 128)
+
+Reattachment Length:
+  DNS: X_r/h = 0.00
+  LES: X_r/h = nan
