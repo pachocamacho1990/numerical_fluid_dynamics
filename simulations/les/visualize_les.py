@@ -26,7 +26,12 @@ def main():
     v = data['v']
     w = data['w']
     p = data['p']
-    nu_t = data['nu_t']
+    if 'nu_t' in data:
+        nu_t = data['nu_t']
+    else:
+        print("Warning: nu_t not found in file. Using zeros.")
+        nu_t = np.zeros_like(u)
+        
     x = data['x']
     y = data['y']
     z = data['z']
